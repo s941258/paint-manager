@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>漆料庫存管理 — 線上版</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/dist/tabler-icons.min.css">
+<style>
+:root {
+  --bg:#fff;--bg2:#f5f5f3;--bg3:#eeede9;--text:#1a1a18;--text2:#6b6b67;
+  --border:rgba(0,0,0,.1);--border2:rgba(0,0,0,.2);--r:8px;--rl:12px;
+  --ibg:#e6f1fb;--itx:#0c447c;--okbg:#eaf3de;--oktx:#3b6d11;
+  --wbg:#faeeda;--wtx:#854f0b;--dbg:#fcebeb;--dtx:#a32d2d;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2c;--text:#f0ede8;--text2:#8a8a86;
+  --border:rgba(255,255,255,.1);--border2:rgba(255,255,255,.2);
+  --ibg:#042c53;--itx:#85b7eb;--okbg:#173404;--oktx:#97c459;--wbg:#412402;--wtx:#ef9f27;--dbg:#501313;--dtx:#f09595;}
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh}
+.wrap{max-width:1020px;margin:0 auto;padding:1.25rem 1rem}
+header{display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap}
+h1{font-size:19px;font-weight:600;flex:1;display:flex;align-items:center;gap:7px}
+h1 .ti{font-size:20px;color:var(--text2)}
+.ctrls{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+input[type=text],select{height:34px;border:.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);padding:0 9px;font-size:13px;outline:none}
+input[type=text]:focus,select:focus{border-color:var(--text2)}
+.sw{position:relative}.sw input{padding-left:28px}.sw .ti{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text2);pointer-events:none}
+.btn{height:34px;padding:0 12px;border-radius:var(--r);border:.5px solid var(--border2);font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;background:var(--bg);color:var(--text);transition:background .15s}
+.btn:hover{background:var(--bg2)}
+.btn-p{background:var(--text);color:var(--bg);border-color:transparent}
+.btn-p:hover{opacity:.85;background:var(--text)}
+.btn-green{background:#3b6d11;color:#fff;border-color:transparent}
+.btn-green:hover{opacity:.85}
+/* sync bar */
+.sync-bar{display:flex;align-items:center;gap:8px;padding:.5rem .85rem;background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);margin-bottom:1rem;font-size:12px;color:var(--text2)}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.sync-dot.ok{background:#5dcaa5}
+.sync-dot.loading{background:#ef9f27;animation:pulse 1s ease-in-out infinite}
+.sync-dot.err{background:var(--dtx)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.1rem}
+.stat{background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);padding:.6rem .9rem}
+.sl{font-size:11px;color:var(--text2);margin-bottom:2px}
+.sv{font-size:21px;font-weight:600}
+.sv.w{color:var(--wtx)}.sv.d{color:var(--dtx)}
+.tabs{display:flex;gap:2px;border-bottom:.5px solid var(--border);margin-bottom:.9rem}
+.tab{padding:7px 14px;font-size:13px;border:none;background:none;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.on{color:var(--text);border-bottom-color:var(--text);font-weight:500}
+.panel{display:none}.panel.on{display:block}
+.card{background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+th{background:var(--bg2);padding:8px 9px;text-align:left;font-weight:500;font-size:11px;color:var(--text2);border-bottom:.5px solid var(--border)}
+td{padding:8px 9px;border-bottom:.5px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg2)}
+.dot{width:18px;height:18px;border-radius:4px;border:.5px solid var(--border2);display:inline-block;vertical-align:middle;flex-shrink:0}
+.badge{display:inline-block;padding:2px 6px;border-radius:var(--r);font-size:11px;font-weight:500}
+.b9{background:#e2f5d8;color:#3b6d11}.bv{background:#dbeeff;color:#0c447c}.bot{background:var(--wbg);color:var(--wtx)}
+.btype{background:var(--ibg);color:var(--itx)}
+.bok{background:var(--okbg);color:var(--oktx)}.blow{background:var(--wbg);color:var(--wtx)}.bempty{background:var(--dbg);color:var(--dtx)}
+.abtn{background:none;border:none;cursor:pointer;color:var(--text2);font-size:14px;padding:3px;border-radius:4px}
+.abtn:hover{color:var(--text);background:var(--bg2)}
+.delbtn:hover{color:var(--dtx)}
+.empty{text-align:center;padding:2.5rem;color:var(--text2);font-size:13px}
+.empty .ti{font-size:30px;display:block;margin-bottom:8px}
+/* modal */
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:200}
+.modal{background:var(--bg);border-radius:var(--rl);border:.5px solid var(--border2);padding:1.25rem;width:360px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.modal h2{font-size:15px;font-weight:600;margin-bottom:.9rem}
+.fi{margin-bottom:10px}.fi label{display:block;font-size:11px;color:var(--text2);margin-bottom:3px}
+.fi input,.fi select{width:100%}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.mact{display:flex;gap:8px;margin-top:1rem;justify-content:flex-end}
+/* ai */
+.ai-note{font-size:12px;color:var(--text2);margin-bottom:.75rem;line-height:1.6}
+.ai-row{display:flex;gap:8px;margin-bottom:.9rem}
+.ai-row input{flex:1;font-size:13px}
+.ai-box{border:.5px solid var(--border);border-radius:var(--rl);padding:1rem;background:var(--bg2);min-height:140px;font-size:13px;line-height:1.7;color:var(--text);white-space:pre-wrap}
+/* toast */
+.toast{position:fixed;bottom:1.25rem;right:1.25rem;background:var(--text);color:var(--bg);padding:.55rem .9rem;border-radius:var(--r);font-size:13px;z-index:300;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+/* col widths */
+.c0{width:32px}.c1{width:22%}.c2{width:12%}.c3{width:11%}.c4{width:10%}.c5{width:7%}.c6{width:9%}.c7{width:9%}.c8{width:8%;text-align:right}
+@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}.c3,.c4{display:none}}
+/* pending badge */
+.pending-bar{background:var(--wbg);border:.5px solid var(--wtx);border-radius:var(--r);padding:.5rem .85rem;font-size:12px;color:var(--wtx);margin-bottom:.75rem;display:none;align-items:center;gap:8px}
+.pending-bar.show{display:flex}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1><i class="ti ti-palette"></i>漆料庫存管理 <span style="font-size:11px;font-weight:400;color:var(--text2);margin-left:4px">線上版</span></h1>
+  <div class="ctrls">
+    <div class="sw"><i class="ti ti-search"></i><input type="text" id="q" placeholder="名稱、色號..."></div>
+    <select id="fb"><option value="">全部品牌</option><option>九五二漆</option><option>Vallejo</option></select>
+    <select id="ft"><option value="">全部類型</option><option>基本色</option><option>底漆</option><option>金屬漆</option><option>透明漆</option><option>陰影</option><option>特效</option></select>
+    <select id="ftag"><option value="">噴塗+筆塗</option><option>噴塗</option><option>筆塗</option></select>
+    <select id="fstock"><option value="">全部庫存</option><option value="in">有庫存</option><option value="out">已用完</option></select>
+    <button class="btn btn-p" onclick="openAdd()"><i class="ti ti-plus"></i>新增</button>
+    <button class="btn" onclick="fetchFromSheets()" id="sync-btn" title="從 Google Sheets 重新讀取"><i class="ti ti-refresh"></i></button>
+    <button class="btn" onclick="exportCSV()"><i class="ti ti-download"></i>CSV</button>
+  </div>
+</header>
+
+<div class="sync-bar">
+  <div class="sync-dot" id="sync-dot"></div>
+  <span id="sync-msg">正在讀取 Google Sheets 資料...</span>
+  <span style="flex:1"></span>
+  <a id="sheets-link" href="https://docs.google.com/spreadsheets/d/1aFWuIyYVYrD8HIhiZPka_uUqodmldx5QSeCHBBn4y-w/edit" target="_blank" style="color:var(--itx);font-size:12px;text-decoration:none"><i class="ti ti-external-link" style="font-size:12px"></i> 在 Sheets 編輯</a>
+</div>
+
+<div class="pending-bar" id="pending-bar">
+  <i class="ti ti-alert-triangle"></i>
+  <span id="pending-msg"></span>
+  <span style="flex:1"></span>
+  <button class="btn" style="height:26px;font-size:12px;padding:0 8px" onclick="syncToSheets()"><i class="ti ti-upload"></i> 同步回 Sheets</button>
+  <button class="btn" style="height:26px;font-size:12px;padding:0 8px;margin-left:4px" onclick="discardChanges()">放棄</button>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="sl">總漆料數</div><div class="sv" id="s0">—</div></div>
+  <div class="stat"><div class="sl">有庫存</div><div class="sv" id="s1">—</div></div>
+  <div class="stat"><div class="sl">庫存不足</div><div class="sv w" id="s2">—</div></div>
+  <div class="stat"><div class="sl">已用完</div><div class="sv d" id="s3">—</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab on" onclick="switchTab('inv',this)"><i class="ti ti-list"></i> 庫存列表</button>
+  <button class="tab" onclick="switchTab('ai',this)"><i class="ti ti-wand"></i> AI 調色建議</button>
+</div>
+
+<div class="panel on" id="p-inv">
+  <div class="card">
+    <table><thead><tr>
+      <th class="c0"></th>
+      <th class="c1">名稱</th>
+      <th class="c2">品牌</th>
+      <th class="c3">色號</th>
+      <th class="c4">類型</th>
+      <th class="c5">用法</th>
+      <th class="c6">數量</th>
+      <th class="c7">狀態</th>
+      <th class="c8"></th>
+    </tr></thead>
+    <tbody id="tb"></tbody></table>
+    <div class="empty" id="emp" style="display:none"><i class="ti ti-mood-empty"></i>沒有符合的漆料</div>
+  </div>
+</div>
+
+<div class="panel" id="p-ai">
+  <p class="ai-note">描述你想漆的效果，AI 會根據你的庫存給出具體建議。（需要網路連線）</p>
+  <div class="ai-row">
+    <input type="text" id="aip" placeholder="例：我想漆夏亞的薩克，需要暖紅色系漸層效果...">
+    <button class="btn btn-p" onclick="askAI()" id="aibtn"><i class="ti ti-wand"></i>建議</button>
+  </div>
+  <div class="ai-box" id="aib"><span style="color:var(--text2)">輸入需求後按「建議」🎨</span></div>
+</div>
+</div>
+
+<div id="mc"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// Google Sheets 設定
+// ============================================================
+const SHEET_ID = '1aFWuIyYVYrD8HIhiZPka_uUqodmldx5QSeCHBBn4y-w';
+// 公開讀取 URL（CSV 格式，不需要登入）
+const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=工作表1`;
+
+// 色號 → 顏色對照表（從 9527ALL.csv 萃取的真實 RGB）
+const COLOR_MAP = {"AB-01":"#ffffff","AB-02":"#000000","AB-03":"#ff0000","AB-04":"#ff8000","AB-05":"#ffff00","AB-06":"#00ff00","AB-07":"#0000ff","AB-08":"#6600cc","AB-09":"#4b0082","MC-01":"#c0c0c0","MC-02":"#ffd700","MC-03":"#36454f","MC-04":"#f7e7ce","MC-05":"#4682b4","MC-06":"#00a86b","MC-07":"#6a0dad","MC-08":"#ff8c00","MC-09":"#d4af37","MC-10":"#2a3439","MC-11":"#696969","MC-12":"#b22222","MC-13":"#cbcdcd","MC-14":"#b76e79","MC-15":"#778899","MC-16":"#000080","MC-17":"#8b4513","MC-18":"#b87333","MC-19":"#cd7f32","MC-20":"#d4af37","MC-21":"#50c878","MC-22":"#c8a850","MC-23":"#3760b0","MC-24":"#d46090","MC-25":"#a8a070","MC-26":"#d4c060","MC-27":"#e0a820","MC-28":"#c8a030","ME-01":"#f5f5f5","ME-02":"#ffffff","ME-03":"#f0f0f0","ME-04":"#708090","ME-05":"#808080","ME-06":"#696969","ME-07":"#2f4f4f","ME-08":"#f4a460","ME-09":"#e6e6fa","ME-10":"#808080","ME-11":"#696969","ME-12":"#d3d3d3","ME-13":"#a9a9a9","ME-14":"#696969","ME-15":"#778899","ME-16":"#708090","ME-17":"#2f4f4f","ME-18":"#191970","ME-19":"#000080","ME-20":"#00008b","ME-21":"#ff0000","ME-22":"#dc143c","ME-23":"#b22222","ME-24":"#8b0000","ME-25":"#800000","ME-26":"#a52a2a","ME-27":"#4169e1","ME-28":"#87ceeb","ME-29":"#00008b","ME-30":"#008080","ME-31":"#0000ff","ME-32":"#9370db","ME-33":"#663399","ME-34":"#8a2be2","ME-35":"#4b0082","ME-36":"#301934","ME-37":"#800080","ME-38":"#6a0dad","ME-39":"#ffd700","ME-40":"#ffcc00","ME-41":"#ffa500","ME-42":"#ff8c00","ME-43":"#daa520","ME-44":"#90ee90","ME-45":"#98fb98","ME-46":"#228b22","ME-47":"#006400","ME-48":"#556b2f","ME-49":"#2f4f2f","ME-50":"#e32636","ME-51":"#ffb6c1","ME-52":"#ff1493","ME-53":"#b22222","ME-54":"#800020","ME-55":"#add8e6","ME-56":"#4682b4","ME-57":"#00008b","ME-58":"#708090","ME-59":"#0a0a28","P-01":"#ffffff","P-02":"#000000","P-03":"#808080","P-04":"#141414","P-05":"#ffc0cb","P-06":"#ffff00","ML-01":"#d2d2d7","ML-02":"#d7b446","ML-03":"#c39b3c","ML-04":"#af914b","ML-05":"#285590","ML-06":"#6e4696","ML-07":"#3c915a","ML-08":"#c3beb4","ML-09":"#9b7d55","ML-10":"#414146","ML-11":"#55555a","ML-12":"#69696e","ML-13":"#b42d37","ML-14":"#d29687","ML-15":"#afb4b9","ML-16":"#2d4169","ML-17":"#4b4646","ML-18":"#af5f46","ML-19":"#916941","ML-20":"#5f5f64","ML-21":"#8cb964","ML-22":"#bea873","ML-23":"#3769af","ML-24":"#d75a8c","ML-25":"#b9a57d","ML-26":"#d7c387","ML-27":"#e1be55","ML-28":"#cdaf64","PP-01":"#fafafa","PP-02":"#969696","PP-03":"#282828","PP-04":"#1e1e1e","CLP-01":"#c81e1e","CLP-02":"#dcb41e","CLP-03":"#1e50b4","CLP-04":"#1ea050","CLP-05":"#7832a0","CLP-06":"#3c3c41","CLP-07":"#c83c78","MEC-01":"#f5f5f5","MEC-02":"#cc2328","MEC-03":"#af1e23","MEC-04":"#912328","MEC-05":"#f5af28","MEC-06":"#eb642d","MEC-07":"#415040","MEC-08":"#d79614","MEC-09":"#3c414b","MEC-10":"#555560","MEC-11":"#e6e6e1","MEC-12":"#a5a5aa","MEC-13":"#5a5f64","MEC-14":"#8796a5","MEC-15":"#4b5564","MEC-16":"#2d2d32","MEC-17":"#cd323c","MEC-18":"#9b282d","MEC-19":"#284173","MEC-20":"#234b87","MEC-21":"#6969a5","MEC-22":"#7d559b","MEC-23":"#553773","MEC-24":"#232323","MEC-25":"#9bc3e1","MEC-26":"#2d5fa5","MEC-27":"#9196c3","MEC-28":"#414173","MEC-29":"#5f7387","MEC-30":"#2d3241","MEC-31":"#d7c3a0","MEC-32":"#d2af6e","MEC-33":"#b99664","MEC-34":"#916e4b","MEC-35":"#f0b4b9","MEC-36":"#d77d8c","MEC-37":"#b4414b","MEC-38":"#872d37","MEC-39":"#692d2d","MEC-40":"#a5b991","MEC-41":"#739169","MEC-42":"#415a41","MEC-43":"#375041","MEC-44":"#4b5f50","MEC-45":"#3c4637","MEC-46":"#415578","MEC-47":"#4b69aa","MEC-48":"#2d4173","MEC-49":"#233760","MEC-50":"#2d3750","MEC-51":"#f5b923","MEC-52":"#c38c41","MEC-53":"#737d87","MEC-54":"#4b505a","MCP-01":"#0000cd","MCP-02":"#87ceeb","MCP-03":"#8b4513","MCP-04":"#d2b48c","MCP-05":"#2f4f2f","MCP-06":"#7cfc00","MCP-07":"#faf0e6","MCP-08":"#f5f5dc","MCP-09":"#006400","MCP-10":"#50c878","MCP-11":"#8a0303","MCP-12":"#ffbf00","MCP-13":"#800020","MCP-14":"#f5f5f5","BP-01":"#ffffff","BP-02":"#000000","BP-03":"#ff0000","BP-04":"#ff8000","BP-05":"#ffff00","BP-06":"#00ff00","BP-07":"#0000ff","BP-08":"#800080","BP-09":"#8b4513","BP-10":"#ff00ff","FLP-01":"#39ff14","FLP-02":"#00ffff","FLP-03":"#ff3131","FLP-04":"#ff1493","FLP-05":"#ffff00","FLP-06":"#ff9900","FLP-07":"#9932cc","CL-01":"#ff0000","CL-02":"#ffff00","CL-03":"#0000ff","CL-04":"#ffa500","CL-05":"#00ff00","CL-06":"#87ceeb","CL-07":"#800080","CL-08":"#000000","CL-09":"#8b4513","CL-10":"#ff00ff","CL-11":"#ffd700","CL-12":"#ffffff","CP-01":"#ffffff","CP-02":"#ffffff","CP-03":"#ffffff","CPP-01":"#ffffff","CPP-02":"#f0f0f0","CPP-03":"#f5f5f5","SWP-01":"#502828","SWP-02":"#a0783c","SWP-03":"#dca03c","SWP-04":"#641414","SWP-05":"#dcb428","PP-01":"#fafafa","PP-02":"#969696","PP-03":"#282828","PP-04":"#1e1e1e","69.001":"#f5f5f5","69.002":"#d3d3cf","69.003":"#faf0e6","69.004":"#ffff00","69.005":"#ffd9b3","69.006":"#ffb6c1","69.007":"#ff8c00","69.008":"#ff2200","69.009":"#cc1100","69.010":"#ff00aa","69.011":"#8b0000","69.012":"#6600cc","69.013":"#1a1aff","69.016":"#add8e6","69.019":"#0033cc","69.020":"#0099ff","69.021":"#00008b","69.022":"#000055","69.028":"#6b8e23","69.030":"#004000","69.038":"#686868","69.041":"#3d5a3e","69.042":"#0a0a0a","69.060":"#cfb53b","69.062":"#cd7f32","70.641":"#808080","70.642":"#1a1a1a"};
+
+const LOCAL_KEY = 'pm_online_v1';
+let paints = [];
+let pendingChanges = false;
+let editId = null;
+
+// ============================================================
+// 同步狀態 UI
+// ============================================================
+function setSyncStatus(state, msg) {
+  const dot = document.getElementById('sync-dot');
+  const msgEl = document.getElementById('sync-msg');
+  dot.className = 'sync-dot ' + (state === 'ok' ? 'ok' : state === 'loading' ? 'loading' : 'err');
+  msgEl.textContent = msg;
+}
+
+// ============================================================
+// 從 Google Sheets 讀取（公開 CSV）
+// ============================================================
+async function fetchFromSheets() {
+  setSyncStatus('loading', '正在從 Google Sheets 讀取最新資料...');
+  document.getElementById('sync-btn').innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i>';
+  try {
+    const res = await fetch(CSV_URL + '&t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const parsed = parseCSV(text);
+    if (parsed.length > 0) {
+      paints = parsed;
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(paints));
+      pendingChanges = false;
+      updatePendingBar();
+      setSyncStatus('ok', `已從 Google Sheets 載入 ${paints.length} 筆資料 — ${new Date().toLocaleTimeString('zh-TW')}`);
+      render();
+    } else {
+      throw new Error('解析結果為空');
+    }
+  } catch(e) {
+    console.error(e);
+    // 嘗試從 localStorage 載入
+    const cached = localStorage.getItem(LOCAL_KEY);
+    if (cached) {
+      paints = JSON.parse(cached);
+      setSyncStatus('err', '無法連線 Google Sheets，使用本地快取資料');
+      render();
+    } else {
+      setSyncStatus('err', '無法讀取資料：' + e.message);
+    }
+  }
+  document.getElementById('sync-btn').innerHTML = '<i class="ti ti-refresh"></i>';
+}
+
+// ============================================================
+// 解析 Google Sheets CSV（欄位：品牌,色號,名稱,庫存數量,圖片路徑,標籤）
+// ============================================================
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const result = [];
+  let id = 1;
+  // skip header row
+  for (let i = 1; i < lines.length; i++) {
+    const row = parseCSVLine(lines[i]);
+    if (row.length < 4) continue;
+    const brand = clean(row[0]);
+    const code  = clean(row[1]);
+    const name  = clean(row[2]);
+    const qty   = parseFloat(clean(row[3])) || 0;
+    const tag   = row[5] ? clean(row[5]) : '噴塗';
+    if (!name || !code) continue;
+
+    // 對應顏色
+    const color = COLOR_MAP[code] || guessColor(name);
+
+    // 判斷類型
+    let type = '基本色';
+    if (code.startsWith('P-') || code.startsWith('PP-')) type = '底漆';
+    else if (code.startsWith('CP') || code.startsWith('CPP')) type = '透明漆';
+    else if (code.startsWith('CL') || code.startsWith('ML') || code.startsWith('MC-')) type = '金屬漆';
+    else if (code.startsWith('SWP')) type = '陰影';
+    else if (code.startsWith('FLP')) type = '特效';
+    else if (brand === 'AV' && code.startsWith('70.')) type = '底漆';
+
+    // 標準化品牌名稱
+    let brandName = brand;
+    if (brand === '九五二漆' || brand.includes('9527') || brand.includes('九五二')) brandName = '九五二漆';
+    else if (brand === 'AV' || brand.toLowerCase().includes('vallejo')) brandName = 'Vallejo';
+
+    result.push({ id: id++, name, brand: brandName, code, type, qty, color, tag, note: '' });
+  }
+  return result;
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let cur = '';
+  let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') {
+      if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+      else inQ = !inQ;
+    } else if (c === ',' && !inQ) {
+      result.push(cur); cur = '';
+    } else cur += c;
+  }
+  result.push(cur);
+  return result;
+}
+
+function clean(s) {
+  return s ? s.replace(/^["']|["']$/g, '').trim() : '';
+}
+
+function guessColor(name) {
+  if (name.includes('白') || name.includes('White')) return '#f5f5f5';
+  if (name.includes('黑') || name.includes('Black')) return '#1a1a1a';
+  if (name.includes('紅') || name.includes('Red')) return '#c0392b';
+  if (name.includes('藍') || name.includes('Blue')) return '#2980b9';
+  if (name.includes('綠') || name.includes('Green')) return '#27ae60';
+  if (name.includes('黃') || name.includes('Yellow')) return '#f1c40f';
+  if (name.includes('橘') || name.includes('Orange')) return '#e67e22';
+  if (name.includes('紫') || name.includes('Purple')) return '#8e44ad';
+  if (name.includes('粉') || name.includes('Pink')) return '#fd79a8';
+  if (name.includes('灰') || name.includes('Grey') || name.includes('Gray')) return '#7f8c8d';
+  if (name.includes('金') || name.includes('Gold')) return '#f0c040';
+  if (name.includes('銀') || name.includes('Silver')) return '#bdc3c7';
+  if (name.includes('銅') || name.includes('Bronze') || name.includes('Copper')) return '#cd7f32';
+  return '#aaaaaa';
+}
+
+// ============================================================
+// Pending changes UI
+// ============================================================
+function updatePendingBar() {
+  const bar = document.getElementById('pending-bar');
+  const msg = document.getElementById('pending-msg');
+  if (pendingChanges) {
+    bar.classList.add('show');
+    msg.textContent = '有未同步的本地變更';
+  } else {
+    bar.classList.remove('show');
+  }
+}
+
+function syncToSheets() {
+  window.open(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`, '_blank');
+  toast('已開啟 Google Sheets，請手動更新資料後按右上角「重新讀取」');
+}
+
+function discardChanges() {
+  if (confirm('放棄本地變更，重新從 Sheets 載入？')) {
+    pendingChanges = false;
+    fetchFromSheets();
+  }
+}
+
+// ============================================================
+// Render
+// ============================================================
+function bb(p) {
+  if (p.brand === '九五二漆') return `<span class="badge b9">九五二漆</span>`;
+  if (p.brand === 'Vallejo') return `<span class="badge bv">Vallejo</span>`;
+  return `<span class="badge bot">${p.brand}</span>`;
+}
+function sb(q) {
+  if (q === 0) return '<span class="badge bempty">用完</span>';
+  if (q <= 1) return '<span class="badge blow">不足</span>';
+  return '<span class="badge bok">充足</span>';
+}
+
+function filt() {
+  const q = document.getElementById('q').value.toLowerCase();
+  const fb = document.getElementById('fb').value;
+  const ft = document.getElementById('ft').value;
+  const ftag = document.getElementById('ftag').value;
+  const fs = document.getElementById('fstock').value;
+  return paints.filter(p => {
+    const mq = !q || p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q) || (p.note||'').toLowerCase().includes(q);
+    const ms = !fs || (fs === 'in' && p.qty > 0) || (fs === 'out' && p.qty === 0);
+    return mq && (!fb || p.brand === fb) && (!ft || p.type === ft) && (!ftag || p.tag === ftag) && ms;
+  });
+}
+
+function render() {
+  const list = filt();
+  const tb = document.getElementById('tb');
+  const emp = document.getElementById('emp');
+  if (!list.length) { tb.innerHTML = ''; emp.style.display = 'block'; }
+  else {
+    emp.style.display = 'none';
+    tb.innerHTML = list.map(p => `<tr>
+      <td class="c0"><span class="dot" style="background:${p.color||'#ccc'}"></span></td>
+      <td class="c1" title="${p.name}">${p.name}</td>
+      <td class="c2">${bb(p)}</td>
+      <td class="c3">${p.code}</td>
+      <td class="c4"><span class="badge btype">${p.type}</span></td>
+      <td class="c5">${p.tag||''}</td>
+      <td class="c6">${p.qty} 罐</td>
+      <td class="c7">${sb(p.qty)}</td>
+      <td class="c8">
+        <button class="abtn" onclick="openEdit(${p.id})" title="編輯"><i class="ti ti-edit"></i></button>
+        <button class="abtn delbtn" onclick="del(${p.id})" title="刪除"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>`).join('');
+  }
+  document.getElementById('s0').textContent = paints.length;
+  document.getElementById('s1').textContent = paints.filter(p => p.qty > 1).length;
+  document.getElementById('s2').textContent = paints.filter(p => p.qty > 0 && p.qty <= 1).length;
+  document.getElementById('s3').textContent = paints.filter(p => p.qty === 0).length;
+}
+
+// ============================================================
+// CRUD（本地操作，標記為 pending）
+// ============================================================
+function nextId() { return paints.length ? Math.max(...paints.map(p => p.id)) + 1 : 1; }
+function saveLocal() {
+  localStorage.setItem(LOCAL_KEY, JSON.stringify(paints));
+  pendingChanges = true;
+  updatePendingBar();
+}
+
+function openAdd() { editId = null; showModal({ id: null, name: '', brand: '九五二漆', code: '', type: '基本色', qty: 1, color: '#cccccc', tag: '噴塗', note: '' }); }
+function openEdit(id) { editId = id; const p = paints.find(x => x.id === id); if (p) showModal({...p}); }
+
+function showModal(p) {
+  const n = !p.id;
+  document.getElementById('mc').innerHTML = `
+  <div class="mbg" onclick="if(event.target===this)closeMod()">
+    <div class="modal">
+      <h2>${n ? '新增漆料' : '編輯漆料'}</h2>
+      <div class="fi"><label>漆料名稱</label><input type="text" id="fn" value="${p.name}" placeholder="例：白練"></div>
+      <div class="r2">
+        <div class="fi"><label>品牌</label>
+          <select id="fb2">${['九五二漆','Vallejo','其他'].map(b=>`<option ${p.brand===b?'selected':''}>${b}</option>`).join('')}</select>
+        </div>
+        <div class="fi"><label>色號</label><input type="text" id="fc" value="${p.code}"></div>
+      </div>
+      <div class="r2">
+        <div class="fi"><label>類型</label>
+          <select id="ftype">${['基本色','底漆','金屬漆','透明漆','陰影','特效'].map(t=>`<option ${p.type===t?'selected':''}>${t}</option>`).join('')}</select>
+        </div>
+        <div class="fi"><label>用法</label>
+          <select id="ftag2">${['噴塗','筆塗'].map(t=>`<option ${(p.tag||'噴塗')===t?'selected':''}>${t}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="r2">
+        <div class="fi"><label>數量（罐）</label><input type="number" id="fq" value="${p.qty}" min="0" max="99" step="0.5"></div>
+        <div class="fi"><label>顏色</label><input type="color" id="fcolor" value="${p.color||'#cccccc'}" style="height:34px;padding:2px"></div>
+      </div>
+      <div class="fi"><label>備注</label><input type="text" id="fnote" value="${p.note||''}" placeholder="可留空"></div>
+      <div class="mact">
+        <button class="btn" onclick="closeMod()">取消</button>
+        <button class="btn btn-p" onclick="savePaint()">儲存</button>
+      </div>
+    </div>
+  </div>`;
+}
+function closeMod() { document.getElementById('mc').innerHTML = ''; }
+
+function savePaint() {
+  const name = document.getElementById('fn').value.trim();
+  if (!name) { alert('請輸入漆料名稱'); return; }
+  const paint = {
+    id: editId || nextId(), name,
+    brand: document.getElementById('fb2').value,
+    code: document.getElementById('fc').value.trim(),
+    type: document.getElementById('ftype').value,
+    tag: document.getElementById('ftag2').value,
+    qty: parseFloat(document.getElementById('fq').value) || 0,
+    color: document.getElementById('fcolor').value,
+    note: document.getElementById('fnote').value.trim(),
+  };
+  if (editId) { const i = paints.findIndex(p => p.id === editId); paints[i] = paint; toast('已更新 ' + name); }
+  else { paints.push(paint); toast('已新增 ' + name); }
+  saveLocal(); closeMod(); render();
+}
+
+function del(id) {
+  const p = paints.find(x => x.id === id);
+  if (!p || !confirm(`確定要刪除「${p.name}」？`)) return;
+  paints = paints.filter(x => x.id !== id);
+  saveLocal(); render(); toast('已刪除');
+}
+
+function exportCSV() {
+  const rows = [['名稱','品牌','色號','類型','用法','數量','備注']];
+  paints.forEach(p => rows.push([p.name, p.brand, p.code, p.type, p.tag||'', p.qty, p.note||'']));
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\uFEFF' + csv], {type: 'text/csv;charset=utf-8'}));
+  a.download = 'paints_export.csv'; a.click(); toast('CSV 已匯出');
+}
+
+function switchTab(n, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('p-' + n).classList.add('on');
+}
+
+async function askAI() {
+  const prompt = document.getElementById('aip').value.trim();
+  if (!prompt) return;
+  const box = document.getElementById('aib');
+  const btn = document.getElementById('aibtn');
+  btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2"></i> 分析中...';
+  box.textContent = 'AI 正在分析你的庫存...';
+  const inv = paints.filter(p => p.qty > 0).map(p => `${p.name}(${p.brand},${p.code},${p.type},${p.tag},${p.qty}罐)`).join('\n');
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514', max_tokens: 1000,
+        system: '你是模型漆料調色專家，用戶使用九五二漆(9527)和 Vallejo Mecha Color，主要做鋼彈模型。根據庫存給具體建議，繁體中文，條列步驟，直接指出色號，200字以內。',
+        messages: [{ role: 'user', content: `有庫存漆料：\n${inv}\n\n需求：${prompt}` }]
+      })
+    });
+    const d = await res.json();
+    box.textContent = d.content?.find(c => c.type === 'text')?.text || '無法取得回應';
+  } catch(e) { box.textContent = '⚠️ 連線失敗，請確認網路後再試。'; }
+  btn.disabled = false; btn.innerHTML = '<i class="ti ti-wand"></i>建議';
+}
+
+function toast(m) {
+  const t = document.getElementById('toast');
+  t.textContent = m; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// CSS spin
+const style = document.createElement('style');
+style.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+document.head.appendChild(style);
+
+['q','fb','ft','ftag','fstock'].forEach(id => document.getElementById(id).addEventListener('input', render));
+document.getElementById('aip').addEventListener('keydown', e => { if (e.key === 'Enter') askAI(); });
+
+// 啟動時自動從 Sheets 讀取
+fetchFromSheets();
+</script>
+</body>
+</html>
