@@ -151,23 +151,28 @@ tr:hover td{background:var(--bg2)}
 </div>
 
 <div class="panel" id="p-ai">
-  <div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);padding:2rem;text-align:center">
-    <div style="font-size:48px;margin-bottom:1rem">🎨</div>
-    <div style="font-size:16px;font-weight:500;margin-bottom:.5rem;color:var(--text)">AI 調色建議</div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:1.5rem;line-height:1.7">
-      直接在 Claude 詢問調色建議，<br>Claude 可以即時讀取你的 Google Sheets 庫存，<br>給出最精確的推薦。
+  <!-- API Key 設定區 -->
+  <div id="key-setup" style="display:none;background:var(--wbg);border:.5px solid var(--wtx);border-radius:var(--rl);padding:1rem;margin-bottom:1rem;font-size:13px">
+    <div style="font-weight:500;color:var(--wtx);margin-bottom:.5rem"><i class="ti ti-key"></i> 請先輸入 Gemini API Key</div>
+    <div style="color:var(--text2);font-size:12px;margin-bottom:.75rem">
+      免費申請：前往 <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--itx)">aistudio.google.com/app/apikey</a> → 點「Create API Key」→ 複製貼上
     </div>
-    <a href="https://claude.ai" target="_blank" class="btn btn-p" style="display:inline-flex;text-decoration:none;padding:0 24px;height:40px;font-size:14px;gap:8px">
-      <i class="ti ti-external-link"></i> 開啟 Claude 詢問調色
-    </a>
-    <div style="margin-top:1.25rem;background:var(--bg2);border-radius:var(--r);padding:1rem;text-align:left;font-size:12px;color:var(--text2);line-height:1.8">
-      <div style="font-weight:500;color:var(--text);margin-bottom:.4rem">💡 範例問法：</div>
-      <div>・我想漆夏亞的薩克，從我的庫存推薦紅色系調色步驟</div>
-      <div>・我有哪些藍色系漆料可以做漸層？</div>
-      <div>・幫我看庫存，推薦鋼彈白色裝甲的噴塗順序</div>
-      <div>・我想做舊化效果，庫存裡有什麼可以用？</div>
+    <div style="display:flex;gap:8px">
+      <input type="password" id="gemini-key-input" placeholder="AIza..." style="flex:1;font-size:13px">
+      <button class="btn btn-p" onclick="saveKey()" style="white-space:nowrap">儲存</button>
     </div>
   </div>
+
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem">
+    <p style="font-size:12px;color:var(--text2);flex:1">根據你的庫存給出具體調色建議（使用 Google Gemini，永久免費）</p>
+    <button class="btn" onclick="changeKey()" style="font-size:11px;height:28px;padding:0 8px;color:var(--text2)"><i class="ti ti-key"></i> 換 Key</button>
+  </div>
+
+  <div class="ai-row">
+    <input type="text" id="aip" placeholder="例：我想漆夏亞的薩克，需要暖紅色系漸層效果...">
+    <button class="btn btn-p" onclick="askAI()" id="aibtn"><i class="ti ti-wand"></i>建議</button>
+  </div>
+  <div class="ai-box" id="aib"><span style="color:var(--text2)">輸入需求後按「建議」🎨</span></div>
 </div>
 </div>
 
@@ -496,7 +501,94 @@ const style = document.createElement('style');
 style.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
 document.head.appendChild(style);
 
+// ============================================================
+// Gemini AI 調色
+// ============================================================
+const KEY_STORAGE = 'gemini_api_key';
+
+function checkKeySetup() {
+  const key = localStorage.getItem(KEY_STORAGE);
+  const setup = document.getElementById('key-setup');
+  if (!key) {
+    setup.style.display = 'block';
+  } else {
+    setup.style.display = 'none';
+  }
+}
+
+function saveKey() {
+  const val = document.getElementById('gemini-key-input').value.trim();
+  if (!val) { alert('請輸入 API Key'); return; }
+  localStorage.setItem(KEY_STORAGE, val);
+  document.getElementById('key-setup').style.display = 'none';
+  toast('API Key 已儲存 ✓');
+}
+
+function changeKey() {
+  localStorage.removeItem(KEY_STORAGE);
+  document.getElementById('gemini-key-input').value = '';
+  document.getElementById('key-setup').style.display = 'block';
+}
+
+async function askAI() {
+  const key = localStorage.getItem(KEY_STORAGE);
+  if (!key) {
+    document.getElementById('key-setup').style.display = 'block';
+    document.getElementById('aib').textContent = '請先設定 Gemini API Key ↑';
+    return;
+  }
+  const prompt = document.getElementById('aip').value.trim();
+  if (!prompt) return;
+  const box = document.getElementById('aib');
+  const btn = document.getElementById('aibtn');
+  btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2"></i> 分析中...';
+  box.textContent = 'AI 正在分析你的庫存...';
+
+  const inv = paints.filter(p => p.qty > 0)
+    .map(p => `${p.name}(${p.brand},${p.code},${p.type},${p.tag},${p.qty}罐)`)
+    .join('\n');
+
+  const systemPrompt = `你是模型漆料調色專家，用戶使用九五二漆(9527)和 Vallejo Mecha Color，主要做鋼彈模型噴塗。根據用戶提供的庫存，給出具體實用的調色建議，用繁體中文條列步驟，直接指出用哪罐漆、色號，200字以內。`;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `${systemPrompt}\n\n有庫存的漆料：\n${inv}\n\n用戶需求：${prompt}`
+            }]
+          }]
+        })
+      }
+    );
+    const d = await res.json();
+    if (d.error) throw new Error(d.error.message);
+    const text = d.candidates?.[0]?.content?.parts?.[0]?.text || '無法取得回應';
+    box.textContent = text;
+  } catch(e) {
+    if (e.message.includes('API_KEY_INVALID') || e.message.includes('400')) {
+      box.textContent = '⚠️ API Key 無效，請重新設定。';
+      changeKey();
+    } else {
+      box.textContent = '⚠️ 連線失敗：' + e.message;
+    }
+  }
+  btn.disabled = false; btn.innerHTML = '<i class="ti ti-wand"></i>建議';
+}
+
+// 切換到 AI 頁時檢查 Key
+const origSwitchTab = switchTab;
+function switchTab(n, el) {
+  origSwitchTab(n, el);
+  if (n === 'ai') checkKeySetup();
+}
+
 ['q','fb','ft','ftag','fstock'].forEach(id => document.getElementById(id).addEventListener('input', render));
+document.getElementById('aip').addEventListener('keydown', e => { if (e.key === 'Enter') askAI(); });
 
 
 // 啟動時自動從 Sheets 讀取
