@@ -57,14 +57,14 @@ tr:hover td{background:var(--bg2)}
 .r2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .mact{display:flex;gap:8px;margin-top:1rem;justify-content:flex-end}
 /* AI */
-.ai-setup{background:var(--wbg);border:.5px solid var(--wtx);border-radius:var(--rl);padding:1rem;margin-bottom:1rem;font-size:13px}
-.ai-setup-title{font-weight:500;color:var(--wtx);margin-bottom:.5rem}
-.ai-setup-desc{color:var(--text2);font-size:12px;margin-bottom:.75rem;line-height:1.6}
-.ai-key-row{display:flex;gap:8px}
-.ai-note{font-size:12px;color:var(--text2);margin-bottom:.75rem;line-height:1.6;display:flex;align-items:center;gap:8px}
-.ai-input-row{display:flex;gap:8px;margin-bottom:.9rem}
+
+
+
+
+
+
 .ai-input-row input{flex:1;font-size:13px}
-.ai-box{border:.5px solid var(--border);border-radius:var(--rl);padding:1rem;background:var(--bg2);min-height:140px;font-size:13px;line-height:1.7;color:var(--text);white-space:pre-wrap}
+
 /* toast */
 .toast{position:fixed;bottom:1.25rem;right:1.25rem;background:var(--text);color:var(--bg);padding:.55rem .9rem;border-radius:var(--r);font-size:13px;z-index:300;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.show{opacity:1}
@@ -121,26 +121,23 @@ tr:hover td{background:var(--bg2)}
 </div>
 
 <div class="panel" id="p-ai">
-  <div class="ai-setup" id="ai-setup" style="display:none">
-    <div class="ai-setup-title"><i class="ti ti-key"></i> 請先輸入 Gemini API Key</div>
-    <div class="ai-setup-desc">
-      免費申請：前往 <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--itx)">aistudio.google.com/app/apikey</a><br>
-      登入 Google 帳號 → 點「Create API Key」→ 複製貼上下方
+  <div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);padding:2rem;text-align:center">
+    <div style="font-size:48px;margin-bottom:1rem">🎨</div>
+    <div style="font-size:16px;font-weight:500;margin-bottom:.5rem;color:var(--text)">AI 調色建議</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:1.5rem;line-height:1.7">
+      在 Claude 詢問調色建議，<br>Claude 可以即時讀取你的 Google Sheets 庫存，<br>給出最精確的推薦。
     </div>
-    <div class="ai-key-row">
-      <input type="password" id="key-input" placeholder="AIza..." style="flex:1;font-size:13px">
-      <button class="btn btn-p" onclick="saveKey()">儲存</button>
+    <a href="https://claude.ai" target="_blank" class="btn btn-p" style="text-decoration:none;padding:0 24px;height:40px;font-size:14px">
+      <i class="ti ti-external-link"></i> 開啟 Claude 詢問調色
+    </a>
+    <div style="margin-top:1.25rem;background:var(--bg2);border-radius:var(--r);padding:1rem;text-align:left;font-size:12px;color:var(--text2);line-height:1.9">
+      <div style="font-weight:500;color:var(--text);margin-bottom:.4rem">💡 範例問法：</div>
+      <div>・我想漆夏亞的薩克，從我的庫存推薦紅色系調色步驟</div>
+      <div>・我有哪些藍色系漆料可以做漸層？</div>
+      <div>・幫我看庫存，推薦鋼彈白色裝甲的噴塗順序</div>
+      <div>・我想做舊化效果，庫存裡有什麼可以用？</div>
     </div>
   </div>
-  <div class="ai-note">
-    <span style="flex:1">根據你的庫存給出具體調色建議（Google Gemini，永久免費）</span>
-    <button class="btn" onclick="changeKey()" style="height:28px;font-size:11px;padding:0 8px"><i class="ti ti-key"></i> 換 Key</button>
-  </div>
-  <div class="ai-input-row">
-    <input type="text" id="ai-prompt" placeholder="例：我想漆夏亞的薩克，需要暖紅色系漸層效果...">
-    <button class="btn btn-p" id="ai-btn" onclick="askAI()"><i class="ti ti-wand"></i>建議</button>
-  </div>
-  <div class="ai-box" id="ai-box"><span style="color:var(--text2)">輸入需求後按「建議」🎨</span></div>
 </div>
 </div>
 
@@ -150,7 +147,7 @@ tr:hover td{background:var(--bg2)}
 <script>
 const SHEET_ID = '1aFWuIyYVYrD8HIhiZPka_uUqodmldx5QSeCHBBn4y-w';
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
-const LKEY = 'pm_v5', GKEY = 'gemini_key';
+const LKEY = 'pm_v5';
 
 const COLOR_MAP = {"AB-01": "#ffffff", "AB-02": "#000000", "AB-03": "#ff0000", "AB-04": "#ff8000", "AB-05": "#ffff00", "AB-06": "#00ff00", "AB-07": "#0000ff", "AB-08": "#6600cc", "AB-09": "#4b0082", "MC-01": "#c0c0c0", "MC-02": "#ffd700", "MC-03": "#36454f", "MC-04": "#f7e7ce", "MC-05": "#4682b4", "MC-06": "#00a86b", "MC-07": "#6a0dad", "MC-08": "#ff8c00", "MC-09": "#d4af37", "MC-10": "#2a3439", "MC-11": "#696969", "MC-12": "#b22222", "MC-13": "#cbcdcd", "MC-14": "#b76e79", "MC-15": "#778899", "MC-16": "#000080", "MC-17": "#8b4513", "MC-18": "#b87333", "MC-19": "#cd7f32", "MC-20": "#d4af37", "MC-21": "#50c878", "MC-22": "#c8a850", "MC-23": "#3760b0", "MC-24": "#d46090", "MC-25": "#a8a070", "MC-26": "#d4c060", "MC-27": "#e0a820", "MC-28": "#c8a030", "ME-01": "#f5f5f5", "ME-02": "#ffffff", "ME-03": "#f0f0f0", "ME-04": "#708090", "ME-05": "#808080", "ME-06": "#696969", "ME-07": "#2f4f4f", "ME-08": "#f4a460", "ME-09": "#e6e6fa", "ME-10": "#808080", "ME-11": "#696969", "ME-12": "#d3d3d3", "ME-13": "#a9a9a9", "ME-14": "#696969", "ME-15": "#778899", "ME-16": "#708090", "ME-17": "#2f4f4f", "ME-18": "#191970", "ME-19": "#000080", "ME-20": "#00008b", "ME-21": "#ff0000", "ME-22": "#dc143c", "ME-23": "#b22222", "ME-24": "#8b0000", "ME-25": "#800000", "ME-26": "#a52a2a", "ME-27": "#4169e1", "ME-28": "#87ceeb", "ME-29": "#00008b", "ME-30": "#008080", "ME-31": "#0000ff", "ME-32": "#9370db", "ME-33": "#663399", "ME-34": "#8a2be2", "ME-35": "#4b0082", "ME-36": "#301934", "ME-37": "#800080", "ME-38": "#6a0dad", "ME-39": "#ffd700", "ME-40": "#ffcc00", "ME-41": "#ffa500", "ME-42": "#ff8c00", "ME-43": "#daa520", "ME-44": "#90ee90", "ME-45": "#98fb98", "ME-46": "#228b22", "ME-47": "#006400", "ME-48": "#556b2f", "ME-49": "#2f4f2f", "ME-50": "#e32636", "ME-51": "#ffb6c1", "ME-52": "#ff1493", "ME-53": "#b22222", "ME-54": "#800020", "ME-55": "#add8e6", "ME-56": "#4682b4", "ME-57": "#00008b", "ME-58": "#708090", "ME-59": "#0a0a28", "P-01": "#ffffff", "P-02": "#000000", "P-03": "#808080", "P-04": "#141414", "P-05": "#ffc0cb", "P-06": "#ffff00", "ML-01": "#d2d2d7", "ML-02": "#d7b446", "ML-03": "#c39b3c", "ML-04": "#af914b", "ML-05": "#285590", "ML-06": "#6e4696", "ML-07": "#3c915a", "ML-08": "#c3beb4", "ML-09": "#9b7d55", "ML-10": "#414146", "ML-11": "#55555a", "ML-12": "#69696e", "ML-13": "#b42d37", "ML-14": "#d29687", "ML-15": "#afb4b9", "ML-16": "#2d4169", "ML-17": "#4b4646", "ML-18": "#af5f46", "ML-19": "#916941", "ML-20": "#5f5f64", "ML-21": "#8cb964", "ML-22": "#bea873", "ML-23": "#3769af", "ML-24": "#d75a8c", "ML-25": "#b9a57d", "ML-26": "#d7c387", "ML-27": "#e1be55", "ML-28": "#cdaf64", "PP-01": "#fafafa", "PP-02": "#969696", "PP-03": "#282828", "PP-04": "#1e1e1e", "CLP-01": "#c81e1e", "CLP-02": "#dcb41e", "CLP-03": "#1e50b4", "CLP-04": "#1ea050", "CLP-05": "#7832a0", "CLP-06": "#3c3c41", "CLP-07": "#c83c78", "MEC-01": "#f5f5f5", "MEC-02": "#cc2328", "MEC-03": "#af1e23", "MEC-04": "#912328", "MEC-05": "#f5af28", "MEC-06": "#eb642d", "MEC-07": "#415040", "MEC-08": "#d79614", "MEC-09": "#3c414b", "MEC-10": "#555560", "MEC-11": "#e6e6e1", "MEC-12": "#a5a5aa", "MEC-13": "#5a5f64", "MEC-14": "#8796a5", "MEC-15": "#4b5564", "MEC-16": "#2d2d32", "MEC-17": "#cd323c", "MEC-18": "#9b282d", "MEC-19": "#284173", "MEC-20": "#234b87", "MEC-21": "#6969a5", "MEC-22": "#7d559b", "MEC-23": "#553773", "MEC-24": "#232323", "MEC-25": "#9bc3e1", "MEC-26": "#2d5fa5", "MEC-27": "#9196c3", "MEC-28": "#414173", "MEC-29": "#5f7387", "MEC-30": "#2d3241", "MEC-31": "#d7c3a0", "MEC-32": "#d2af6e", "MEC-33": "#b99664", "MEC-34": "#916e4b", "MEC-35": "#f0b4b9", "MEC-36": "#d77d8c", "MEC-37": "#b4414b", "MEC-38": "#872d37", "MEC-39": "#692d2d", "MEC-40": "#a5b991", "MEC-41": "#739169", "MEC-42": "#415a41", "MEC-43": "#375041", "MEC-44": "#4b5f50", "MEC-45": "#3c4637", "MEC-46": "#415578", "MEC-47": "#4b69aa", "MEC-48": "#2d4173", "MEC-49": "#233760", "MEC-50": "#2d3750", "MEC-51": "#f5b923", "MEC-52": "#c38c41", "MEC-53": "#737d87", "MEC-54": "#4b505a", "MCP-01": "#0000cd", "MCP-02": "#87ceeb", "MCP-03": "#8b4513", "MCP-04": "#d2b48c", "MCP-05": "#2f4f2f", "MCP-06": "#7cfc00", "MCP-07": "#faf0e6", "MCP-08": "#f5f5dc", "MCP-09": "#006400", "MCP-10": "#50c878", "MCP-11": "#8a0303", "MCP-12": "#ffbf00", "MCP-13": "#800020", "MCP-14": "#f5f5f5", "BP-01": "#ffffff", "BP-02": "#000000", "BP-03": "#ff0000", "BP-04": "#ff8000", "BP-05": "#ffff00", "BP-06": "#00ff00", "BP-07": "#0000ff", "BP-08": "#800080", "BP-09": "#8b4513", "BP-10": "#ff00ff", "FLP-01": "#39ff14", "FLP-02": "#00ffff", "FLP-03": "#ff3131", "FLP-04": "#ff1493", "FLP-05": "#ffff00", "FLP-06": "#ff9900", "FLP-07": "#9932cc", "CL-01": "#ff0000", "CL-02": "#ffff00", "CL-03": "#0000ff", "CL-04": "#ffa500", "CL-05": "#00ff00", "CL-06": "#87ceeb", "CL-07": "#800080", "CL-08": "#000000", "CL-09": "#8b4513", "CL-10": "#ff00ff", "CL-11": "#ffd700", "CL-12": "#ffffff", "CP-01": "#e8e8e8", "CP-02": "#e8e8e8", "CP-03": "#e8e8e8", "CPP-01": "#e8e8e8", "CPP-02": "#e0e0e0", "CPP-03": "#e4e4e4", "SWP-01": "#502828", "SWP-02": "#a0783c", "SWP-03": "#dca03c", "SWP-04": "#641414", "SWP-05": "#dcb428", "69.001": "#f5f5f5", "69.002": "#d3d3cf", "69.003": "#faf0e6", "69.004": "#ffff00", "69.005": "#ffd9b3", "69.006": "#ffb6c1", "69.007": "#ff8c00", "69.008": "#ff2200", "69.009": "#cc1100", "69.010": "#ff00aa", "69.011": "#8b0000", "69.012": "#6600cc", "69.013": "#1a1aff", "69.014": "#7a8c6e", "69.015": "#7a8fa0", "69.016": "#add8e6", "69.017": "#87ceeb", "69.018": "#003080", "69.019": "#0033cc", "69.020": "#0099ff", "69.021": "#00008b", "69.022": "#000055", "69.023": "#00ced1", "69.024": "#b0a090", "69.025": "#90ee90", "69.026": "#228b22", "69.027": "#2e8b5a", "69.028": "#6b8e23", "69.029": "#005000", "69.030": "#004000", "69.031": "#c8b89a", "69.032": "#c8a020", "69.033": "#d4b870", "69.034": "#7b4f28", "69.035": "#5c3a1e", "69.036": "#c8c8c8", "69.037": "#888888", "69.038": "#686868", "69.039": "#50606a", "69.040": "#505050", "69.041": "#3d5a3e", "69.042": "#0a0a0a", "69.054": "#ffff00", "69.055": "#ff8c00", "69.056": "#ff00aa", "69.057": "#00ff00", "69.058": "#505a64", "69.059": "#ffd700", "69.060": "#cfb53b", "69.061": "#b87333", "69.062": "#cd7f32", "69.063": "#a0a8b0", "69.064": "#c0c8d0", "69.065": "#607080", "69.066": "#b22222", "69.067": "#2060b0", "69.068": "#228b22", "70.640": "#f0f0f0", "70.641": "#808080", "70.642": "#1a1a1a", "70.643": "#f5f0e0", "70.644": "#d4c090"};
 
@@ -361,61 +358,7 @@ function exportCSV() {
   a.download='paints.csv'; a.click(); toast('CSV 已匯出');
 }
 
-// ── Gemini AI ──
-function checkKey() {
-  const k = localStorage.getItem(GKEY);
-  document.getElementById('ai-setup').style.display = k ? 'none' : 'block';
-}
-function saveKey() {
-  const v = document.getElementById('key-input').value.trim();
-  if (!v) { alert('請輸入 API Key'); return; }
-  localStorage.setItem(GKEY, v);
-  document.getElementById('ai-setup').style.display = 'none';
-  toast('API Key 已儲存 ✓');
-}
-function changeKey() {
-  localStorage.removeItem(GKEY);
-  document.getElementById('key-input').value = '';
-  document.getElementById('ai-setup').style.display = 'block';
-}
-async function askAI() {
-  const key = localStorage.getItem(GKEY);
-  if (!key) { checkKey(); return; }
-  const prompt = document.getElementById('ai-prompt').value.trim();
-  if (!prompt) return;
-  const box = document.getElementById('ai-box');
-  const btn = document.getElementById('ai-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> 分析中...';
-  box.textContent = 'AI 正在分析你的庫存...';
-  const inv = paints.filter(p=>p.qty>0).map(p=>`${p.name}(${p.brand},${p.code},${p.type},${p.tag},${p.qty}罐)`).join('\n');
-  try {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: `你是模型漆料調色專家，用戶使用九五二漆(9527)和Vallejo Mecha Color，主要做鋼彈模型。根據庫存給具體建議，繁體中文，條列步驟，直接指出色號，200字以內。\n\n有庫存漆料：\n${inv}\n\n需求：${prompt}` }] }]
-      })
-    });
-    const d = await res.json();
-    if (d.error) throw new Error(d.error.message);
-    box.textContent = d.candidates?.[0]?.content?.parts?.[0]?.text || '無法取得回應';
-  } catch(e) {
-    if (/API_KEY_INVALID|400/.test(e.message)) { box.textContent = '⚠️ API Key 無效，請重新設定。'; changeKey(); }
-    else box.textContent = '⚠️ 連線失敗：' + e.message;
-  }
-  btn.disabled = false;
-  btn.innerHTML = '<i class="ti ti-wand"></i>建議';
-}
 
-function toast(m) {
-  const t=document.getElementById('toast');
-  t.textContent=m; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2000);
-}
-
-['q','fb','ft','ftag','fstock'].forEach(id=>document.getElementById(id).addEventListener('input',render));
-document.getElementById('ai-prompt').addEventListener('keydown',e=>{if(e.key==='Enter')askAI();});
 fetchSheets();
 </script>
 </body>
