@@ -255,11 +255,29 @@ const SHOP_MAP = {
   'SWP': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E7%AD%86%E5%A1%97-%E9%99%B0%E5%BD%B1%E6%BC%86-SWP-%E7%B3%BB%E5%88%97-%E6%BC%AC%E6%B4%97%E6%BC%86-11ml-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-i.944671855.44001842697',
 };
 
-// Vallejo 統一導到賣場首頁（目前無法細分）
+// Vallejo 依色號分頁
 const SHOPEE_STORE = 'https://shopee.tw/people3x3';
+const VALLEJO_MAP = {
+  'base_1': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-AV-Vallejo-Mecha-%E5%9F%BA%E7%A4%8E%E8%89%B2-69.001~025-%E6%B0%B4%E6%80%A7%E6%BC%86-AV%E6%BC%86-%E6%A9%9F%E7%94%B2%E8%89%B2-AV%E6%B0%B4%E6%BC%86-i.944671855.27706691700',
+  'base_2': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-AV-Vallejo-Mecha-%E5%9F%BA%E7%A4%8E%E8%89%B2-69.026~042-%E6%A9%9F%E7%94%B2%E7%B3%BB%E5%88%97-%E6%B0%B4%E6%80%A7%E6%BC%86-AV%E6%BC%86-%E6%A9%9F%E7%94%B2%E8%89%B2-AV%E6%B0%B4%E6%BC%86-i.944671855.26906693697',
+  'special': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-AV-Vallejo-Mecha-%E8%9E%A2%E5%85%89%E8%89%B2-%E9%87%91%E5%B1%AC%E8%89%B2-%E6%BC%AC%E6%B4%97%E6%B6%B2-%E6%A9%9F%E7%94%B2%E7%B3%BB%E5%88%97-%E6%B0%B4%E6%80%A7%E6%BC%86-AV%E6%BC%86-%E6%A9%9F%E7%94%B2%E8%89%B2-i.944671855.27006700184',
+};
+
+function getVallejoUrl(code) {
+  // 69.001~025 → 基礎色第一頁
+  // 69.026~042 → 基礎色第二頁
+  // 70.xxx, 69.054~, 其他 → 螢光/金屬/漬洗頁
+  const m = code.match(/^69\.0*(\d+)/);
+  if (m) {
+    const n = parseInt(m[1]);
+    if (n <= 25) return VALLEJO_MAP['base_1'];
+    if (n <= 42) return VALLEJO_MAP['base_2'];
+  }
+  return VALLEJO_MAP['special'];
+}
 
 function getShopUrl(p) {
-  if (p.brand === 'Vallejo') return SHOPEE_STORE;
+  if (p.brand === 'Vallejo') return getVallejoUrl(p.code);
   const code = p.code;
   // ME 系列需要依號碼分三段
   const meNum = code.match(/^ME-(\d+)$/);
