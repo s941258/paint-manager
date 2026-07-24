@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>漆料庫存管理</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/dist/tabler-icons.min.css">
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <style>
 :root{--bg:#fff;--bg2:#f5f5f3;--bg3:#eeede9;--text:#1a1a18;--text2:#6b6b67;--border:rgba(0,0,0,.1);--border2:rgba(0,0,0,.2);--r:8px;--rl:12px;--ibg:#e6f1fb;--itx:#0c447c;--okbg:#eaf3de;--oktx:#3b6d11;--wbg:#faeeda;--wtx:#854f0b;--dbg:#fcebeb;--dtx:#a32d2d}
 @media(prefers-color-scheme:dark){:root{--bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2c;--text:#f0ede8;--text2:#8a8a86;--border:rgba(255,255,255,.1);--border2:rgba(255,255,255,.2);--ibg:#042c53;--itx:#85b7eb;--okbg:#173404;--oktx:#97c459;--wbg:#412402;--wtx:#ef9f27;--dbg:#501313;--dtx:#f09595}}
@@ -74,7 +75,7 @@ tr:hover td{background:var(--bg2)}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrap" id="main-wrap" style="display:none">
 <header>
   <h1><i class="ti ti-palette" style="color:var(--text2)"></i>漆料庫存管理</h1>
   <div class="ctrls">
@@ -86,6 +87,7 @@ tr:hover td{background:var(--bg2)}
     <button class="btn btn-p" onclick="openAdd()"><i class="ti ti-plus"></i>新增</button>
     <button class="btn" id="refresh-btn" onclick="fetchSheets()" title="重新讀取"><i class="ti ti-refresh"></i></button>
     <button class="btn" onclick="exportCSV()"><i class="ti ti-download"></i>CSV</button>
+    <button class="btn" onclick="netlifyIdentity.logout()" title="登出" style="color:var(--dtx)"><i class="ti ti-logout"></i></button>
   </div>
 </header>
 
@@ -434,7 +436,7 @@ function exportCSV() {
 }
 
 
-fetchSheets();
+checkAuth();
 </script>
 </body>
 </html>
