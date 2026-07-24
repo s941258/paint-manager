@@ -42,7 +42,7 @@ tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--bg2)}
 .dot{width:18px;height:18px;border-radius:4px;border:.5px solid var(--border2);display:inline-block;vertical-align:middle}
 .badge{display:inline-block;padding:2px 6px;border-radius:var(--r);font-size:11px;font-weight:500}
-.b9{background:#e2f5d8;color:#3b6d11}.bv{background:#dbeeff;color:#0c447c}.bot{background:var(--wbg);color:var(--wtx)}
+.b9{background:#e2f5d8;color:#3b6d11}.bv{background:#dbeeff;color:#0c447c}.bm{background:#fff0e6;color:#a03000}.bot{background:var(--wbg);color:var(--wtx)}
 .btype{background:var(--ibg);color:var(--itx)}
 .bok{background:var(--okbg);color:var(--oktx)}.blow{background:var(--wbg);color:var(--wtx)}.bempty{background:var(--dbg);color:var(--dtx)}
 .abtn{background:none;border:none;cursor:pointer;color:var(--text2);font-size:14px;padding:3px;border-radius:4px}
@@ -95,7 +95,7 @@ tr:hover td{background:var(--bg2)}
   <h1>🎨漆料庫存管理</h1>
   <div class="ctrls">
     <div class="sw">🔍<input type="text" id="q" placeholder="名稱、色號..."></div>
-    <select id="fb"><option value="">全部品牌</option><option>九五二漆</option><option>Vallejo</option></select>
+    <select id="fb"><option value="">全部品牌</option><option>九五二漆</option><option>Vallejo</option><option>MODO</option></select>
     <select id="ft"><option value="">全部類型</option><option>基本色</option><option>底漆</option><option>金屬漆</option><option>透明漆</option><option>陰影</option><option>特效</option></select>
     <select id="ftag"><option value="">噴塗+筆塗</option><option>噴塗</option><option>筆塗</option></select>
     <select id="fstock"><option value="">全部庫存</option><option value="in">有庫存</option><option value="out">已用完</option></select>
@@ -168,7 +168,26 @@ const LKEY = 'pm_v5';
 
 const COLOR_MAP = {"AB-01": "#ffffff", "AB-02": "#000000", "AB-03": "#ff0000", "AB-04": "#ff8000", "AB-05": "#ffff00", "AB-06": "#00ff00", "AB-07": "#0000ff", "AB-08": "#6600cc", "AB-09": "#4b0082", "MC-01": "#c0c0c0", "MC-02": "#ffd700", "MC-03": "#36454f", "MC-04": "#f7e7ce", "MC-05": "#4682b4", "MC-06": "#00a86b", "MC-07": "#6a0dad", "MC-08": "#ff8c00", "MC-09": "#d4af37", "MC-10": "#2a3439", "MC-11": "#696969", "MC-12": "#b22222", "MC-13": "#cbcdcd", "MC-14": "#b76e79", "MC-15": "#778899", "MC-16": "#000080", "MC-17": "#8b4513", "MC-18": "#b87333", "MC-19": "#cd7f32", "MC-20": "#d4af37", "MC-21": "#50c878", "MC-22": "#c8a850", "MC-23": "#3760b0", "MC-24": "#d46090", "MC-25": "#a8a070", "MC-26": "#d4c060", "MC-27": "#e0a820", "MC-28": "#c8a030", "ME-01": "#f5f5f5", "ME-02": "#ffffff", "ME-03": "#f0f0f0", "ME-04": "#708090", "ME-05": "#808080", "ME-06": "#696969", "ME-07": "#2f4f4f", "ME-08": "#f4a460", "ME-09": "#e6e6fa", "ME-10": "#808080", "ME-11": "#696969", "ME-12": "#d3d3d3", "ME-13": "#a9a9a9", "ME-14": "#696969", "ME-15": "#778899", "ME-16": "#708090", "ME-17": "#2f4f4f", "ME-18": "#191970", "ME-19": "#000080", "ME-20": "#00008b", "ME-21": "#ff0000", "ME-22": "#dc143c", "ME-23": "#b22222", "ME-24": "#8b0000", "ME-25": "#800000", "ME-26": "#a52a2a", "ME-27": "#4169e1", "ME-28": "#87ceeb", "ME-29": "#00008b", "ME-30": "#008080", "ME-31": "#0000ff", "ME-32": "#9370db", "ME-33": "#663399", "ME-34": "#8a2be2", "ME-35": "#4b0082", "ME-36": "#301934", "ME-37": "#800080", "ME-38": "#6a0dad", "ME-39": "#ffd700", "ME-40": "#ffcc00", "ME-41": "#ffa500", "ME-42": "#ff8c00", "ME-43": "#daa520", "ME-44": "#90ee90", "ME-45": "#98fb98", "ME-46": "#228b22", "ME-47": "#006400", "ME-48": "#556b2f", "ME-49": "#2f4f2f", "ME-50": "#e32636", "ME-51": "#ffb6c1", "ME-52": "#ff1493", "ME-53": "#b22222", "ME-54": "#800020", "ME-55": "#add8e6", "ME-56": "#4682b4", "ME-57": "#00008b", "ME-58": "#708090", "ME-59": "#0a0a28", "P-01": "#ffffff", "P-02": "#000000", "P-03": "#808080", "P-04": "#141414", "P-05": "#ffc0cb", "P-06": "#ffff00", "ML-01": "#d2d2d7", "ML-02": "#d7b446", "ML-03": "#c39b3c", "ML-04": "#af914b", "ML-05": "#285590", "ML-06": "#6e4696", "ML-07": "#3c915a", "ML-08": "#c3beb4", "ML-09": "#9b7d55", "ML-10": "#414146", "ML-11": "#55555a", "ML-12": "#69696e", "ML-13": "#b42d37", "ML-14": "#d29687", "ML-15": "#afb4b9", "ML-16": "#2d4169", "ML-17": "#4b4646", "ML-18": "#af5f46", "ML-19": "#916941", "ML-20": "#5f5f64", "ML-21": "#8cb964", "ML-22": "#bea873", "ML-23": "#3769af", "ML-24": "#d75a8c", "ML-25": "#b9a57d", "ML-26": "#d7c387", "ML-27": "#e1be55", "ML-28": "#cdaf64", "PP-01": "#fafafa", "PP-02": "#969696", "PP-03": "#282828", "PP-04": "#1e1e1e", "CLP-01": "#c81e1e", "CLP-02": "#dcb41e", "CLP-03": "#1e50b4", "CLP-04": "#1ea050", "CLP-05": "#7832a0", "CLP-06": "#3c3c41", "CLP-07": "#c83c78", "MEC-01": "#f5f5f5", "MEC-02": "#cc2328", "MEC-03": "#af1e23", "MEC-04": "#912328", "MEC-05": "#f5af28", "MEC-06": "#eb642d", "MEC-07": "#415040", "MEC-08": "#d79614", "MEC-09": "#3c414b", "MEC-10": "#555560", "MEC-11": "#e6e6e1", "MEC-12": "#a5a5aa", "MEC-13": "#5a5f64", "MEC-14": "#8796a5", "MEC-15": "#4b5564", "MEC-16": "#2d2d32", "MEC-17": "#cd323c", "MEC-18": "#9b282d", "MEC-19": "#284173", "MEC-20": "#234b87", "MEC-21": "#6969a5", "MEC-22": "#7d559b", "MEC-23": "#553773", "MEC-24": "#232323", "MEC-25": "#9bc3e1", "MEC-26": "#2d5fa5", "MEC-27": "#9196c3", "MEC-28": "#414173", "MEC-29": "#5f7387", "MEC-30": "#2d3241", "MEC-31": "#d7c3a0", "MEC-32": "#d2af6e", "MEC-33": "#b99664", "MEC-34": "#916e4b", "MEC-35": "#f0b4b9", "MEC-36": "#d77d8c", "MEC-37": "#b4414b", "MEC-38": "#872d37", "MEC-39": "#692d2d", "MEC-40": "#a5b991", "MEC-41": "#739169", "MEC-42": "#415a41", "MEC-43": "#375041", "MEC-44": "#4b5f50", "MEC-45": "#3c4637", "MEC-46": "#415578", "MEC-47": "#4b69aa", "MEC-48": "#2d4173", "MEC-49": "#233760", "MEC-50": "#2d3750", "MEC-51": "#f5b923", "MEC-52": "#c38c41", "MEC-53": "#737d87", "MEC-54": "#4b505a", "MCP-01": "#0000cd", "MCP-02": "#87ceeb", "MCP-03": "#8b4513", "MCP-04": "#d2b48c", "MCP-05": "#2f4f2f", "MCP-06": "#7cfc00", "MCP-07": "#faf0e6", "MCP-08": "#f5f5dc", "MCP-09": "#006400", "MCP-10": "#50c878", "MCP-11": "#8a0303", "MCP-12": "#ffbf00", "MCP-13": "#800020", "MCP-14": "#f5f5f5", "BP-01": "#ffffff", "BP-02": "#000000", "BP-03": "#ff0000", "BP-04": "#ff8000", "BP-05": "#ffff00", "BP-06": "#00ff00", "BP-07": "#0000ff", "BP-08": "#800080", "BP-09": "#8b4513", "BP-10": "#ff00ff", "FLP-01": "#39ff14", "FLP-02": "#00ffff", "FLP-03": "#ff3131", "FLP-04": "#ff1493", "FLP-05": "#ffff00", "FLP-06": "#ff9900", "FLP-07": "#9932cc", "CL-01": "#ff0000", "CL-02": "#ffff00", "CL-03": "#0000ff", "CL-04": "#ffa500", "CL-05": "#00ff00", "CL-06": "#87ceeb", "CL-07": "#800080", "CL-08": "#000000", "CL-09": "#8b4513", "CL-10": "#ff00ff", "CL-11": "#ffd700", "CL-12": "#ffffff", "CP-01": "#e8e8e8", "CP-02": "#e8e8e8", "CP-03": "#e8e8e8", "CPP-01": "#e8e8e8", "CPP-02": "#e0e0e0", "CPP-03": "#e4e4e4", "SWP-01": "#502828", "SWP-02": "#a0783c", "SWP-03": "#dca03c", "SWP-04": "#641414", "SWP-05": "#dcb428", "69.001": "#f5f5f5", "69.002": "#d3d3cf", "69.003": "#faf0e6", "69.004": "#ffff00", "69.005": "#ffd9b3", "69.006": "#ffb6c1", "69.007": "#ff8c00", "69.008": "#ff2200", "69.009": "#cc1100", "69.010": "#ff00aa", "69.011": "#8b0000", "69.012": "#6600cc", "69.013": "#1a1aff", "69.014": "#7a8c6e", "69.015": "#7a8fa0", "69.016": "#add8e6", "69.017": "#87ceeb", "69.018": "#003080", "69.019": "#0033cc", "69.020": "#0099ff", "69.021": "#00008b", "69.022": "#000055", "69.023": "#00ced1", "69.024": "#b0a090", "69.025": "#90ee90", "69.026": "#228b22", "69.027": "#2e8b5a", "69.028": "#6b8e23", "69.029": "#005000", "69.030": "#004000", "69.031": "#c8b89a", "69.032": "#c8a020", "69.033": "#d4b870", "69.034": "#7b4f28", "69.035": "#5c3a1e", "69.036": "#c8c8c8", "69.037": "#888888", "69.038": "#686868", "69.039": "#50606a", "69.040": "#505050", "69.041": "#3d5a3e", "69.042": "#0a0a0a", "69.054": "#ffff00", "69.055": "#ff8c00", "69.056": "#ff00aa", "69.057": "#00ff00", "69.058": "#505a64", "69.059": "#ffd700", "69.060": "#cfb53b", "69.061": "#b87333", "69.062": "#cd7f32", "69.063": "#a0a8b0", "69.064": "#c0c8d0", "69.065": "#607080", "69.066": "#b22222", "69.067": "#2060b0", "69.068": "#228b22", "70.640": "#f0f0f0", "70.641": "#808080", "70.642": "#1a1a1a", "70.643": "#f5f0e0", "70.644": "#d4c090"};
 
-let paints = [], editId = null;
+l,
+    "A-001":"#ffffff","A-002":"#0a0a0a","A-003":"#ee1111","A-004":"#2255ee",
+    "A-005":"#ffee00","A-013":"#228833","A-015":"#ff6600","A-018":"#99cc00",
+    "A-019":"#7722cc","A-020":"#ff44aa","A-022":"#cc0044","A-028":"#1144cc",
+    "A-029":"#00aaaa","A-052":"#44aaee","A-061":"#e8e8f0","A-064":"#555566",
+    "A-103":"#ff3344","A-104":"#3366ff","A-105":"#ffcc33","A-216":"#f5c9a0",
+    "A-305":"#8899aa","A-306":"#99aabb","A-307":"#7788aa","A-308":"#8899bb",
+    "A-315":"#778899","A-334":"#aaaaaa",
+    "AF-001":"#f5f5f5","AF-002":"#111111","AF-003":"#dd1111","AF-004":"#2244dd",
+    "AF-005":"#eeee00","AF-013":"#227733","AF-015":"#ee5500","AF-018":"#88bb00",
+    "AF-019":"#6611bb","AF-020":"#ee3399","AF-022":"#bb0033","AF-028":"#0033bb",
+    "AF-029":"#009999","AF-052":"#3399dd","AF-090":"#ff44bb","AF-091":"#ff2222",
+    "AF-092":"#ff6600","AF-095":"#ffff00","AF-097":"#aa00ff","AF-098":"#00ff44",
+    "AF-099":"#0044ff","AF-100":"#e0e0ff",
+    "AM-02":"#444444","AM-03":"#aaaaaa","AM-05":"#d4aa44","AM-09":"#b87333",
+    "AM-10":"#d4c070","AM-11":"#cc8899","AM-19":"#e8e8e8","AM-20":"#444455",
+    "AM-21":"#ccccdd","AM-22":"#ddaa22","AM-23":"#b0b0b0","AM-24":"#cc9922",
+    "AM-33":"#cc3333","AM-34":"#3344cc","AM-36":"#33aa44","AM-37":"#8833cc","AM-39":"#44aadd",
+    "AX-101":"#9933cc","AX-102":"#33aacc","AX-103":"#66cc33","AX-104":"#33cc88",
+    "AX-105":"#cc6633","AX-106":"#4433cc"et paints = [], editId = null;
 
 function setSyncStatus(state, msg) {
   const dot = document.getElementById('sdot');
@@ -297,6 +316,7 @@ function getVallejoUrl(code) {
 }
 
 function getShopUrl(p) {
+  if (p.brand === 'MODO') return 'https://shopee.tw/modocolors';
   if (p.brand === 'Vallejo') return getVallejoUrl(p.code);
   const code = p.code;
   // ME 系列需要依號碼分三段
@@ -323,8 +343,8 @@ function getShopUrl(p) {
 }
 
 function isMetallic(p) {
-  const metalPrefixes = ['ML-','MC-','ML','MC'];
-  const metalNames = ['金','銀','銅','鐵','鋼','鉻','鈦','金屬'];
+  const metalPrefixes = ['ML-','MC-','AM-','AX-'];
+  const metalNames = ['金','銀','銅','鐵','鋼','鉻','鈦','金屬','Metal','Silver','Gold','Copper','Iron'];
   return metalPrefixes.some(pre => p.code.startsWith(pre)) ||
          metalNames.some(n => p.name.includes(n));
 }
@@ -341,6 +361,7 @@ function getSwatchStyle(p) {
 function bb(p) {
   if (p.brand === '九五二漆') return '<span class="badge b9">九五二漆</span>';
   if (p.brand === 'Vallejo') return '<span class="badge bv">Vallejo</span>';
+  if (p.brand === 'MODO') return '<span class="badge bm">MODO</span>';
   return `<span class="badge bot">${p.brand}</span>`;
 }
 function sb(q) {
