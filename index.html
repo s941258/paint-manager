@@ -75,6 +75,21 @@ tr:hover td{background:var(--bg2)}
 </style>
 </head>
 <body>
+
+<div id="login-screen" style="position:fixed;inset:0;background:#f5f5f3;display:flex;align-items:center;justify-content:center;z-index:9999">
+  <div style="background:#fff;border:0.5px solid rgba(0,0,0,.15);border-radius:14px;padding:2.5rem 2rem;width:300px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+    <div style="font-size:40px;margin-bottom:12px">🎨</div>
+    <div style="font-size:16px;font-weight:600;margin-bottom:4px;color:#1a1a18">漆料庫存管理</div>
+    <div style="font-size:12px;color:#6b6b67;margin-bottom:20px">請輸入密碼進入系統</div>
+    <input id="pwd" type="password" placeholder="密碼" maxlength="30"
+      style="width:100%;height:42px;border:0.5px solid rgba(0,0,0,.2);border-radius:8px;padding:0 14px;font-size:15px;text-align:center;letter-spacing:3px;outline:none;margin-bottom:10px;background:#fff;color:#1a1a18">
+    <button onclick="doLogin()"
+      style="width:100%;height:42px;background:#1a1a18;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit">
+      進入
+    </button>
+    <div id="login-err" style="font-size:12px;color:#a32d2d;margin-top:8px;min-height:16px"></div>
+  </div>
+</div>
 <div class="wrap" id="main-wrap" style="display:none">
 <header>
   <h1>🎨漆料庫存管理</h1>
@@ -87,7 +102,7 @@ tr:hover td{background:var(--bg2)}
     <button class="btn btn-p" onclick="openAdd()">+新增</button>
     <button class="btn" id="refresh-btn" onclick="fetchSheets()" title="重新讀取">↻</button>
     <button class="btn" onclick="exportCSV()">↓CSV</button>
-    <button class="btn" onclick="netlifyIdentity.logout()" title="登出" style="color:var(--dtx)">⎋</button>
+    <button class="btn" onclick="doLogout()" title="登出" style="color:var(--dtx)">⎋</button>
   </div>
 </header>
 
@@ -436,40 +451,73 @@ function exportCSV() {
 }
 
 
-// ── Netlify Identity 登入保護 ──
+// ── 密碼登入 ──
+// 密碼的 SHA-256 hash，預設密碼請自行設定
+// 第一次輸入任意密碼會自動設為你的密碼
+const AUTH_KEY = 'pm_pwd_v2';
+const AUTH_EXP = 'pm_pwd_exp';
+const DAYS = 30;
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
 function unlock() {
+  document.getElementById('login-screen').style.display = 'none';
   document.getElementById('main-wrap').style.display = 'block';
   fetchSheets();
 }
 
-function initIdentity() {
-  netlifyIdentity.on('init', function(user) {
-    if (user) {
-      unlock();
-    } else {
-      netlifyIdentity.open('login');
-    }
-  });
-  netlifyIdentity.on('login', function(user) {
-    netlifyIdentity.close();
+async function doLogin() {
+  const pwd = document.getElementById('pwd').value.trim();
+  if (!pwd) return;
+  const hash = await sha256(pwd);
+  const saved = localStorage.getItem(AUTH_KEY);
+  if (!saved) {
+    // 第一次：設定密碼
+    localStorage.setItem(AUTH_KEY, hash);
+    setExp();
     unlock();
-  });
-  netlifyIdentity.on('logout', function() {
-    document.getElementById('main-wrap').style.display = 'none';
-    netlifyIdentity.open('login');
-  });
-  netlifyIdentity.init();
+    return;
+  }
+  if (hash === saved) {
+    setExp();
+    unlock();
+  } else {
+    const e = document.getElementById('login-err');
+    e.textContent = '密碼錯誤，請再試一次';
+    document.getElementById('pwd').value = '';
+    setTimeout(() => e.textContent = '', 2500);
+  }
 }
 
-// 動態載入 Widget，確保 DOM 完全就緒後才執行
-window.addEventListener('load', function() {
-  var script = document.createElement('script');
-  script.src = 'https://identity.netlify.com/v1/netlify-identity-widget.js';
-  script.onload = function() {
-    initIdentity();
-  };
-  document.head.appendChild(script);
+function setExp() {
+  localStorage.setItem(AUTH_EXP, Date.now() + DAYS * 86400000);
+}
+
+function checkAuth() {
+  const saved = localStorage.getItem(AUTH_KEY);
+  const exp = parseInt(localStorage.getItem(AUTH_EXP) || '0');
+  if (saved && Date.now() < exp) {
+    unlock();
+  }
+  // 否則顯示登入頁
+}
+
+document.getElementById('pwd').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
 });
+
+function doLogout() {
+  localStorage.removeItem(AUTH_KEY);
+  localStorage.removeItem(AUTH_EXP);
+  document.getElementById('main-wrap').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('pwd').value = '';
+}
+
+checkAuth();
 </script>
 </body>
 </html>
