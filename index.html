@@ -436,6 +436,30 @@ function exportCSV() {
 }
 
 
+// ── Netlify Identity 登入保護 ──
+function unlock() {
+  document.getElementById('main-wrap').style.display = 'block';
+  fetchSheets();
+}
+
+netlifyIdentity.on('init', function(user) {
+  if (user) {
+    unlock();
+  } else {
+    netlifyIdentity.open('login');
+  }
+});
+
+netlifyIdentity.on('login', function(user) {
+  netlifyIdentity.close();
+  unlock();
+});
+
+netlifyIdentity.on('logout', function() {
+  document.getElementById('main-wrap').style.display = 'none';
+  netlifyIdentity.open('login');
+});
+
 netlifyIdentity.init();
 </script>
 </body>
