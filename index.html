@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>漆料庫存管理</title>
-<link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@3.26.0/dist/tabler-icons.min.css" crossorigin="anonymous">
+
 
 <style>
 :root{--bg:#fff;--bg2:#f5f5f3;--bg3:#eeede9;--text:#1a1a18;--text2:#6b6b67;--border:rgba(0,0,0,.1);--border2:rgba(0,0,0,.2);--r:8px;--rl:12px;--ibg:#e6f1fb;--itx:#0c447c;--okbg:#eaf3de;--oktx:#3b6d11;--wbg:#faeeda;--wtx:#854f0b;--dbg:#fcebeb;--dtx:#a32d2d}
@@ -77,17 +77,17 @@ tr:hover td{background:var(--bg2)}
 <body>
 <div class="wrap" id="main-wrap" style="display:none">
 <header>
-  <h1><i class="ti ti-palette" style="color:var(--text2)"></i>漆料庫存管理</h1>
+  <h1>🎨漆料庫存管理</h1>
   <div class="ctrls">
-    <div class="sw"><i class="ti ti-search"></i><input type="text" id="q" placeholder="名稱、色號..."></div>
+    <div class="sw">🔍<input type="text" id="q" placeholder="名稱、色號..."></div>
     <select id="fb"><option value="">全部品牌</option><option>九五二漆</option><option>Vallejo</option></select>
     <select id="ft"><option value="">全部類型</option><option>基本色</option><option>底漆</option><option>金屬漆</option><option>透明漆</option><option>陰影</option><option>特效</option></select>
     <select id="ftag"><option value="">噴塗+筆塗</option><option>噴塗</option><option>筆塗</option></select>
     <select id="fstock"><option value="">全部庫存</option><option value="in">有庫存</option><option value="out">已用完</option></select>
-    <button class="btn btn-p" onclick="openAdd()"><i class="ti ti-plus"></i>新增</button>
-    <button class="btn" id="refresh-btn" onclick="fetchSheets()" title="重新讀取"><i class="ti ti-refresh"></i></button>
-    <button class="btn" onclick="exportCSV()"><i class="ti ti-download"></i>CSV</button>
-    <button class="btn" onclick="netlifyIdentity.logout()" title="登出" style="color:var(--dtx)"><i class="ti ti-logout"></i></button>
+    <button class="btn btn-p" onclick="openAdd()">+新增</button>
+    <button class="btn" id="refresh-btn" onclick="fetchSheets()" title="重新讀取">↻</button>
+    <button class="btn" onclick="exportCSV()">↓CSV</button>
+    <button class="btn" onclick="netlifyIdentity.logout()" title="登出" style="color:var(--dtx)">⎋</button>
   </div>
 </header>
 
@@ -95,7 +95,7 @@ tr:hover td{background:var(--bg2)}
   <div class="sdot" id="sdot"></div>
   <span id="smsg">正在讀取資料...</span>
   <span style="flex:1"></span>
-  <a href="https://docs.google.com/spreadsheets/d/1aFWuIyYVYrD8HIhiZPka_uUqodmldx5QSeCHBBn4y-w/edit" target="_blank" style="color:var(--itx);font-size:12px;text-decoration:none;display:flex;align-items:center;gap:3px"><i class="ti ti-table"></i>在 Sheets 編輯</a>
+  <a href="https://docs.google.com/spreadsheets/d/1aFWuIyYVYrD8HIhiZPka_uUqodmldx5QSeCHBBn4y-w/edit" target="_blank" style="color:var(--itx);font-size:12px;text-decoration:none;display:flex;align-items:center;gap:3px">⊞在 Sheets 編輯</a>
 </div>
 
 <div class="stats">
@@ -106,8 +106,8 @@ tr:hover td{background:var(--bg2)}
 </div>
 
 <div class="tabs">
-  <button class="tab on" id="tab-inv" onclick="switchTab('inv')"><i class="ti ti-list"></i>庫存列表</button>
-  <button class="tab" id="tab-ai" onclick="switchTab('ai')"><i class="ti ti-wand"></i>AI 調色建議</button>
+  <button class="tab on" id="tab-inv" onclick="switchTab('inv')">☰庫存列表</button>
+  <button class="tab" id="tab-ai" onclick="switchTab('ai')">✦AI 調色建議</button>
 </div>
 
 <div class="panel on" id="p-inv">
@@ -118,7 +118,7 @@ tr:hover td{background:var(--bg2)}
       <th class="c6">數量</th><th class="c7">狀態</th><th class="c8"></th>
     </tr></thead>
     <tbody id="tb"></tbody></table>
-    <div class="empty" id="emp" style="display:none"><i class="ti ti-mood-empty"></i>沒有符合的漆料</div>
+    <div class="empty" id="emp" style="display:none">○沒有符合的漆料</div>
   </div>
 </div>
 
@@ -130,7 +130,7 @@ tr:hover td{background:var(--bg2)}
       在 Claude 詢問調色建議，<br>Claude 可以即時讀取你的 Google Sheets 庫存，<br>給出最精確的推薦。
     </div>
     <a href="https://claude.ai" target="_blank" class="btn btn-p" style="text-decoration:none;padding:0 24px;height:40px;font-size:14px">
-      <i class="ti ti-external-link"></i> 開啟 Claude 詢問調色
+      ↗ 開啟 Claude 詢問調色
     </a>
     <div style="margin-top:1.25rem;background:var(--bg2);border-radius:var(--r);padding:1rem;text-align:left;font-size:12px;color:var(--text2);line-height:1.9">
       <div style="font-weight:500;color:var(--text);margin-bottom:.4rem">💡 範例問法：</div>
@@ -193,7 +193,7 @@ function guessColor(n) {
 async function fetchSheets() {
   setSyncStatus('spin', '正在讀取 Google Sheets...');
   const btn = document.getElementById('refresh-btn');
-  btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i>';
+  btn.innerHTML = '⟳';
   try {
     const res = await fetch(CSV_URL + '&t=' + Date.now());
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -230,7 +230,7 @@ async function fetchSheets() {
     if (cached) { paints = JSON.parse(cached); setSyncStatus('err', '使用本地快取（無法連線 Sheets）'); render(); }
     else { setSyncStatus('err', '讀取失敗：' + e.message); }
   }
-  btn.innerHTML = '<i class="ti ti-refresh"></i>';
+  btn.innerHTML = '↻';
 }
 
 
@@ -344,9 +344,9 @@ function render() {
       <td class="c5">${p.tag||''}</td><td class="c6">${p.qty}罐</td>
       <td class="c7">${sb(p.qty)}</td>
       <td class="c8">
-        <button class="abtn" onclick="openEdit(${p.id})" title="編輯"><i class="ti ti-edit"></i></button>
-        <button class="abtn delbtn" onclick="del(${p.id})" title="刪除"><i class="ti ti-trash"></i></button>
-        <a class="abtn" href="${getShopUrl(p)}" target="_blank" title="購買" style="display:inline-flex;align-items:center;text-decoration:none;${p.qty===0?'color:var(--dtx)':p.qty<=1?'color:var(--wtx)':'color:var(--text2)'}"><i class="ti ti-shopping-cart"></i></a>
+        <button class="abtn" onclick="openEdit(${p.id})" title="編輯">✎</button>
+        <button class="abtn delbtn" onclick="del(${p.id})" title="刪除">✕</button>
+        <a class="abtn" href="${getShopUrl(p)}" target="_blank" title="購買" style="display:inline-flex;align-items:center;text-decoration:none;${p.qty===0?'color:var(--dtx)':p.qty<=1?'color:var(--wtx)':'color:var(--text2)'}">🛒</a>
       </td></tr>`).join('');
   }
   document.getElementById('s0').textContent = paints.length;
