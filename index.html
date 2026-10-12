@@ -713,6 +713,10 @@ async function aiPlan() {
             const color = p ? (isMetallic(p) ?
               'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.7) 0%, ' + (p.color||'#ccc') + ' 40%, rgba(0,0,0,0.25) 100%)' :
               (p.color||'#ccc')) : '#ccc';
+            // Escape HTML special chars in paint name
+            const safeName = (paint.name||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            const safePart = (paint.part||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            const safeNote = (paint.note||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
             const qty = p ? p.qty : '?';
             const qtyColor = qty === 0 ? 'var(--dtx)' : qty <= 1 ? 'var(--wtx)' : 'var(--oktx)';
 
@@ -720,10 +724,10 @@ async function aiPlan() {
             tr.id = 'plan-row-' + id;
             tr.style.borderBottom = '.5px solid var(--border)';
             tr.innerHTML =
-              '<td style="padding:5px 6px"><input type="text" value="' + (paint.part||'') + '" style="width:100%;font-size:12px;border:.5px solid var(--border2);border-radius:6px;padding:4px 7px;background:var(--bg);color:var(--text)" id="pr-part-' + id + '"></td>' +
+              '<td style="padding:5px 6px"><input type="text" value="' + safePart + '" style="width:100%;font-size:12px;border:.5px solid var(--border2);border-radius:6px;padding:4px 7px;background:var(--bg);color:var(--text)" id="pr-part-' + id + '"></td>' +
               '<td style="padding:5px 6px"><div style="display:flex;align-items:center;gap:4px">' +
                 '<div id="pr-swatch-' + id + '" style="width:14px;height:14px;border-radius:3px;border:.5px solid #ccc;flex-shrink:0;background:' + color + '"></div>' +
-                '<input type="text" list="paint-datalist" value="' + (paint.name||'') + '" style="flex:1;min-width:0;font-size:12px;border:.5px solid var(--border2);border-radius:6px;padding:4px 7px;background:var(--bg);color:var(--text)" id="pr-paint-' + id + '" oninput="onPaintInput(' + id + ')">' +
+                '<input type="text" list="paint-datalist" value="' + safeName + '" style="flex:1;min-width:0;font-size:12px;border:.5px solid var(--border2);border-radius:6px;padding:4px 7px;background:var(--bg);color:var(--text)" id="pr-paint-' + id + '" oninput="onPaintInput(' + id + ')">' +
               '</div></td>' +
               '<td style="padding:5px 6px"><span id="pr-code-' + id + '" style="font-size:11px;color:var(--text2);font-family:monospace">' + (paint.code||'—') + '</span></td>' +
               '<td style="padding:5px 6px"><span id="pr-qty-' + id + '" style="font-size:11px;color:' + qtyColor + ';font-weight:500">' + qty + ' 罐</span></td>' +
@@ -732,9 +736,16 @@ async function aiPlan() {
                   return '<option' + (r === paint.role ? ' selected' : '') + '>' + r + '</option>';
                 }).join('') +
               '</select></td>' +
-              '<td style="padding:5px 6px"><input type="text" value="' + (paint.note||'') + '" style="width:100%;font-size:12px;border:.5px solid var(--border2);border-radius:6px;padding:4px 7px;background:var(--bg);color:var(--text)" id="pr-note-' + id + '"></td>' +
+              '<td style="padding:5px 6px"><input type="text" value="' + safeNote + '" style="width:100%;font-size:12px;border:.5px solid var(--border2);border-radius:6px;padding:4px 7px;background:var(--bg);color:var(--text)" id="pr-note-' + id + '"></td>' +
               '<td style="padding:5px 6px;text-align:center"><button onclick="removePlanRow(' + id + ')" style="background:none;border:none;cursor:pointer;color:var(--text2);font-size:14px">✕</button></td>';
             tbody.appendChild(tr);
+            // Set values via DOM to avoid encoding issues
+            var partEl = document.getElementById('pr-part-' + id);
+            var paintEl = document.getElementById('pr-paint-' + id);
+            var noteEl = document.getElementById('pr-note-' + id);
+            if (partEl) partEl.value = paint.part || '';
+            if (paintEl) paintEl.value = paint.name || '';
+            if (noteEl) noteEl.value = paint.note || '';
             rowCount++;
           });
         }
