@@ -5,103 +5,114 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>漆料庫存管理</title>
 
-
 <style>
-:root{--bg:#fff;--bg2:#f5f5f3;--bg3:#eeede9;--text:#1a1a18;--text2:#6b6b67;--border:rgba(0,0,0,.1);--border2:rgba(0,0,0,.2);--r:8px;--rl:12px;--ibg:#e6f1fb;--itx:#0c447c;--okbg:#eaf3de;--oktx:#3b6d11;--wbg:#faeeda;--wtx:#854f0b;--dbg:#fcebeb;--dtx:#a32d2d}
-@media(prefers-color-scheme:dark){:root{--bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2c;--text:#f0ede8;--text2:#8a8a86;--border:rgba(255,255,255,.1);--border2:rgba(255,255,255,.2);--ibg:#042c53;--itx:#85b7eb;--okbg:#173404;--oktx:#97c459;--wbg:#412402;--wtx:#ef9f27;--dbg:#501313;--dtx:#f09595}}
+:root{--bg:#fff;--bg2:#f5f5f3;--bg3:#eeede9;--text:#1a1a18;--text2:#6b6b67;--border:rgba(0,0,0,.1);--border2:rgba(0,0,0,.2);--r:8px;--rl:12px;--ibg:#e6f1fb;--itx:#0c447c;--okbg:#eaf3de;--oktx:#3b6d11;--wbg:#faeeda;--wtx:#854f0b;--dbg:#fcebeb;--dtx:#a32d2d;--shadow:0 4px 20px rgba(0,0,0,0.04);}
+@media(prefers-color-scheme:dark){:root{--bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2c;--text:#f0ede8;--text2:#8a8a86;--border:rgba(255,255,255,.1);--border2:rgba(255,255,255,.2);--ibg:#042c53;--itx:#85b7eb;--okbg:#173404;--oktx:#97c459;--wbg:#412402;--wtx:#ef9f27;--dbg:#501313;--dtx:#f09595;--shadow:0 4px 20px rgba(0,0,0,0.2);}}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh}
+
+/* 自訂捲軸 */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text2); }
+
 .wrap{max-width:1020px;margin:0 auto;padding:1.25rem 1rem}
 header{display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap}
 h1{font-size:19px;font-weight:600;flex:1;display:flex;align-items:center;gap:7px}
-.ctrls{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
-input[type=text],select{height:34px;border:.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);padding:0 9px;font-size:13px;outline:none}
-input[type=text]:focus,select:focus{border-color:var(--text2)}
+.ctrls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input[type=text], input[type=password], input[type=number], select{height:34px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);padding:0 9px;font-size:13px;outline:none;transition:all 0.2s ease;}
+input[type=text]:focus, input[type=password]:focus, input[type=number]:focus, select:focus{border-color:var(--text);box-shadow:0 0 0 3px rgba(120,120,120,0.15);}
 .sw{position:relative}.sw input{padding-left:28px}.sw .ti{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text2);pointer-events:none}
-.btn{height:34px;padding:0 12px;border-radius:var(--r);border:.5px solid var(--border2);font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;background:var(--bg);color:var(--text);transition:background .15s;text-decoration:none}
+.btn{height:34px;padding:0 12px;border-radius:var(--r);border:1px solid var(--border2);font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:5px;background:var(--bg);color:var(--text);transition:all .15s;text-decoration:none}
 .btn:hover{background:var(--bg2)}
 .btn-p{background:var(--text);color:var(--bg);border-color:transparent}
-.btn-p:hover{opacity:.85;background:var(--text)}
-.sync-bar{display:flex;align-items:center;gap:8px;padding:.45rem .85rem;background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);margin-bottom:1rem;font-size:12px;color:var(--text2)}
+.btn-p:hover{opacity:.85;background:var(--text);transform:translateY(-1px);}
+
+.sync-bar{display:flex;align-items:center;gap:8px;padding:.45rem .85rem;background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);margin-bottom:1rem;font-size:12px;color:var(--text2);box-shadow:var(--shadow);}
 .sdot{width:8px;height:8px;border-radius:50%;background:var(--border2);flex-shrink:0;transition:background .3s}
 .sdot.ok{background:#5dcaa5}.sdot.spin{background:#ef9f27;animation:pulse 1s ease-in-out infinite}.sdot.err{background:var(--dtx)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.1rem}
-.stat{background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);padding:.6rem .9rem}
-.sl{font-size:11px;color:var(--text2);margin-bottom:2px}.sv{font-size:21px;font-weight:600}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.1rem}
+.stat{background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);padding:.8rem 1rem;box-shadow:var(--shadow);}
+.sl{font-size:11px;color:var(--text2);margin-bottom:4px}.sv{font-size:24px;font-weight:600}
 .sv.w{color:var(--wtx)}.sv.d{color:var(--dtx)}
-.tabs{display:flex;gap:2px;border-bottom:.5px solid var(--border);margin-bottom:.9rem}
-.tab{padding:7px 14px;font-size:13px;border:none;background:none;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:inline-flex;align-items:center;gap:5px}
-.tab.on{color:var(--text);border-bottom-color:var(--text);font-weight:500}
-.panel{display:none}.panel.on{display:block}
-.card{background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);overflow:hidden}
-table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
-th{background:var(--bg2);padding:8px 9px;text-align:left;font-weight:500;font-size:11px;color:var(--text2);border-bottom:.5px solid var(--border)}
-td{padding:8px 9px;border-bottom:.5px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:1.2rem}
+.tab{padding:8px 16px;font-size:14px;border:none;background:none;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:inline-flex;align-items:center;gap:5px;transition:color 0.2s;}
+.tab.on{color:var(--text);border-bottom-color:var(--text);font-weight:600}
+.panel{display:none; animation: fadeIn 0.3s ease;}
+.panel.on{display:block}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* 表格優化 (固定標題列) */
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);box-shadow:var(--shadow);overflow:hidden;}
+.table-container { max-height: 60vh; overflow-y: auto; overflow-x: auto; }
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;min-width:700px;}
+th{position:sticky;top:0;z-index:10;background:var(--bg2);padding:10px 12px;text-align:left;font-weight:600;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border);box-shadow: 0 1px 0 var(--border);}
+@media(prefers-color-scheme:dark){ th { background: rgba(37,37,35,0.95); backdrop-filter: blur(8px); } }
+td{padding:10px 12px;border-bottom:1px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;transition:background 0.15s;}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--bg2)}
-.dot{width:18px;height:18px;border-radius:4px;border:.5px solid var(--border2);display:inline-block;vertical-align:middle}
-.badge{display:inline-block;padding:2px 6px;border-radius:var(--r);font-size:11px;font-weight:500}
+
+.dot{width:20px;height:20px;border-radius:6px;border:1px solid var(--border2);display:inline-block;vertical-align:middle;box-shadow: inset 0 1px 2px rgba(255,255,255,0.2);}
+.badge{display:inline-block;padding:3px 8px;border-radius:var(--r);font-size:11px;font-weight:600}
 .b9{background:#e2f5d8;color:#3b6d11}.bv{background:#dbeeff;color:#0c447c}.bm{background:#fff0e6;color:#a03000}.bot{background:var(--wbg);color:var(--wtx)}
 .btype{background:var(--ibg);color:var(--itx)}
 .bok{background:var(--okbg);color:var(--oktx)}.blow{background:var(--wbg);color:var(--wtx)}.bempty{background:var(--dbg);color:var(--dtx)}
-.abtn{background:none;border:none;cursor:pointer;color:var(--text2);font-size:14px;padding:3px;border-radius:4px}
-.abtn:hover{color:var(--text);background:var(--bg2)}.delbtn:hover{color:var(--dtx)}
-.empty{text-align:center;padding:2.5rem;color:var(--text2);font-size:13px}
-.empty .ti{font-size:30px;display:block;margin-bottom:8px}
-/* modal */
-.mbg{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:200}
-.modal{background:var(--bg);border-radius:var(--rl);border:.5px solid var(--border2);padding:1.25rem;width:360px;max-width:95vw;max-height:90vh;overflow-y:auto}
-.modal h2{font-size:15px;font-weight:600;margin-bottom:.9rem}
-.fi{margin-bottom:10px}.fi label{display:block;font-size:11px;color:var(--text2);margin-bottom:3px}
-.fi input,.fi select{width:100%}
-.r2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.mact{display:flex;gap:8px;margin-top:1rem;justify-content:flex-end}
-/* AI */
+.abtn{background:none;border:none;cursor:pointer;color:var(--text2);font-size:16px;padding:4px;border-radius:6px;transition:all 0.15s;}
+.abtn:hover{color:var(--text);background:var(--bg3);transform:scale(1.1);}.delbtn:hover{color:var(--dtx)}
 
+.empty{text-align:center;padding:3.5rem;color:var(--text2);font-size:14px}
+.empty .ti{font-size:36px;display:block;margin-bottom:12px}
 
-
-
-
-
-.ai-input-row input{flex:1;font-size:13px}
+/* modal 優化 */
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:200;animation: fadeIn 0.2s ease;}
+.modal{background:var(--bg);border-radius:16px;border:1px solid var(--border2);padding:1.5rem;width:400px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow: 0 20px 40px rgba(0,0,0,0.15);}
+.modal h2{font-size:18px;font-weight:600;margin-bottom:1.2rem}
+.fi{margin-bottom:12px}.fi label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px}
+.fi input,.fi select{width:100%;height:38px;}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mact{display:flex;gap:10px;margin-top:1.5rem;justify-content:flex-end}
 
 /* toast */
-.toast{position:fixed;bottom:1.25rem;right:1.25rem;background:var(--text);color:var(--bg);padding:.55rem .9rem;border-radius:var(--r);font-size:13px;z-index:300;opacity:0;transition:opacity .2s;pointer-events:none}
-.toast.show{opacity:1}
-.c0{width:32px}.c1{width:20%}.c2{width:11%}.c3{width:10%}.c4{width:9%}.c5{width:7%}.c6{width:8%}.c7{width:9%}.c8{width:10%;text-align:right}
-@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}.c3,.c4{display:none}}
-@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--text);color:var(--bg);padding:.75rem 1.2rem;border-radius:var(--r);font-size:14px;font-weight:500;z-index:300;opacity:0;transition:all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);pointer-events:none;transform:translateY(20px);}
+.toast.show{opacity:1;transform:translateY(0);}
+.c0{width:40px}.c1{width:20%}.c2{width:11%}.c3{width:12%}.c4{width:10%}.c5{width:8%}.c6{width:8%}.c7{width:10%}.c8{width:12%;text-align:right}
+@media(max-width:768px){.stats{grid-template-columns:repeat(2,1fr)}.c3,.c4{display:none}}
 </style>
 </head>
 <body>
 
-<div id="login-screen" style="position:fixed;inset:0;background:#f5f5f3;display:flex;align-items:center;justify-content:center;z-index:9999">
-  <div style="background:#fff;border:0.5px solid rgba(0,0,0,.15);border-radius:14px;padding:2.5rem 2rem;width:300px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
-    <div style="font-size:40px;margin-bottom:12px">🎨</div>
-    <div style="font-size:16px;font-weight:600;margin-bottom:4px;color:#1a1a18">漆料庫存管理</div>
-    <div style="font-size:12px;color:#6b6b67;margin-bottom:20px">請輸入密碼進入系統</div>
-    <input id="pwd" type="password" placeholder="密碼" maxlength="30"
-      style="width:100%;height:42px;border:0.5px solid rgba(0,0,0,.2);border-radius:8px;padding:0 14px;font-size:15px;text-align:center;letter-spacing:3px;outline:none;margin-bottom:10px;background:#fff;color:#1a1a18">
-    <button onclick="doLogin()"
-      style="width:100%;height:42px;background:#1a1a18;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit">
+<div id="login-screen" style="position:fixed;inset:0;background:var(--bg2);display:flex;align-items:center;justify-content:center;z-index:9999">
+  <div style="background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:3rem 2.5rem;width:340px;text-align:center;box-shadow:var(--shadow);">
+    <div style="font-size:48px;margin-bottom:16px">🎨</div>
+    <div style="font-size:18px;font-weight:600;margin-bottom:6px;color:var(--text)">漆料庫存管理</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:24px">請輸入密碼進入系統</div>
+    <input id="pwd" type="password" placeholder="密碼" maxlength="30" autofocus
+      style="width:100%;height:46px;border-radius:8px;padding:0 14px;font-size:16px;text-align:center;letter-spacing:4px;margin-bottom:12px;">
+    <button onclick="doLogin()" class="btn btn-p"
+      style="width:100%;height:46px;font-size:15px;justify-content:center;">
       進入
     </button>
-    <div id="login-err" style="font-size:12px;color:#a32d2d;margin-top:8px;min-height:16px"></div>
+    <div id="login-err" style="font-size:12px;color:var(--dtx);margin-top:12px;min-height:16px"></div>
   </div>
 </div>
+
 <div class="wrap" id="main-wrap" style="display:none">
 <header>
-  <h1>🎨漆料庫存管理</h1>
+  <h1>🎨 漆料庫存管理</h1>
   <div class="ctrls">
-    <div class="sw">🔍<input type="text" id="q" placeholder="名稱、色號..."></div>
-    <select id="fb"><option value="">全部品牌</option><option>九五二漆</option><option>Vallejo</option><option>MODO</option></select>
-    <select id="ft"><option value="">全部類型</option><option>基本色</option><option>底漆</option><option>金屬漆</option><option>透明漆</option><option>陰影</option><option>特效</option></select>
-    <select id="ftag"><option value="">噴塗+筆塗</option><option>噴塗</option><option>筆塗</option></select>
-    <select id="fstock"><option value="">全部庫存</option><option value="in">有庫存</option><option value="out">已用完</option></select>
-    <button class="btn btn-p" onclick="openAdd()">+新增</button>
+    <div class="sw"><span class="ti">🔍</span><input type="text" id="q" placeholder="名稱、色號..." oninput="render()"></div>
+    <select id="fb" onchange="render()"><option value="">全部品牌</option><option>九五二漆</option><option>Vallejo</option><option>MODO</option></select>
+    <select id="ft" onchange="render()"><option value="">全部類型</option><option>基本色</option><option>底漆</option><option>金屬漆</option><option>透明漆</option><option>陰影</option><option>特效</option></select>
+    <select id="ftag" onchange="render()"><option value="">噴塗+筆塗</option><option>噴塗</option><option>筆塗</option></select>
+    <select id="fstock" onchange="render()"><option value="">全部庫存</option><option value="in">有庫存</option><option value="out">已用完</option></select>
+    <button class="btn" onclick="resetFilters()" title="重置篩選">↺</button>
+    <button class="btn btn-p" onclick="openAdd()">+ 新增</button>
     <button class="btn" id="refresh-btn" onclick="fetchSheets()" title="重新讀取">↻</button>
-    <button class="btn" onclick="exportCSV()">↓CSV</button>
+    <button class="btn" onclick="exportCSV()">↓ CSV</button>
     <button class="btn" onclick="doLogout()" title="登出" style="color:var(--dtx)">⎋</button>
   </div>
 </header>
@@ -110,7 +121,7 @@ tr:hover td{background:var(--bg2)}
   <div class="sdot" id="sdot"></div>
   <span id="smsg">正在讀取資料...</span>
   <span style="flex:1"></span>
-  <a href="https://docs.google.com/spreadsheets/d/1aFWuIyYVYrD8HIhiZPka_uUqodmldx5QSeCHBBn4y-w/edit" target="_blank" style="color:var(--itx);font-size:12px;text-decoration:none;display:flex;align-items:center;gap:3px">⊞在 Sheets 編輯</a>
+  <a href="https://docs.google.com/spreadsheets/d/1aFWuIyYVYrD8HIhiZPka_uUqodmldx5QSeCHBBn4y-w/edit" target="_blank" style="color:var(--itx);font-size:12px;text-decoration:none;display:flex;align-items:center;gap:4px">⊞ 在 Sheets 編輯</a>
 </div>
 
 <div class="stats">
@@ -121,101 +132,104 @@ tr:hover td{background:var(--bg2)}
 </div>
 
 <div class="tabs">
-  <button class="tab on" id="tab-inv" onclick="switchTab('inv')">☰庫存列表</button>
-  <button class="tab" id="tab-ai" onclick="switchTab('ai')">✦AI 調色建議</button>
+  <button class="tab on" id="tab-inv" onclick="switchTab('inv')">☰ 庫存列表</button>
+  <button class="tab" id="tab-ai" onclick="switchTab('ai')">✦ AI 調色建議</button>
   <button class="tab" id="tab-plan" onclick="switchTab('plan')">📋 上色企劃</button>
 </div>
 
+<!-- 庫存列表 -->
 <div class="panel on" id="p-inv">
-  <div class="card">
+  <div class="card table-container">
     <table><thead><tr>
       <th class="c0"></th><th class="c1">名稱</th><th class="c2">品牌</th>
       <th class="c3">色號</th><th class="c4">類型</th><th class="c5">用法</th>
-      <th class="c6">數量</th><th class="c7">狀態</th><th class="c8"></th>
+      <th class="c6">數量</th><th class="c7">狀態</th><th class="c8">操作</th>
     </tr></thead>
     <tbody id="tb"></tbody></table>
-    <div class="empty" id="emp" style="display:none">○沒有符合的漆料</div>
+    <div class="empty" id="emp" style="display:none">
+      <span class="ti">📭</span>沒有符合的漆料
+    </div>
   </div>
 </div>
 
+<!-- AI 建議 -->
 <div class="panel" id="p-ai">
-  <div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);padding:2rem;text-align:center">
-    <div style="font-size:48px;margin-bottom:1rem">🎨</div>
-    <div style="font-size:16px;font-weight:500;margin-bottom:.5rem;color:var(--text)">AI 調色建議</div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:1.5rem;line-height:1.7">
-      在 Claude 詢問調色建議，<br>Claude 可以即時讀取你的 Google Sheets 庫存，<br>給出最精確的推薦。
+  <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);padding:2.5rem 2rem;text-align:center;box-shadow:var(--shadow);">
+    <div style="font-size:54px;margin-bottom:1.2rem">🤖</div>
+    <div style="font-size:18px;font-weight:600;margin-bottom:.5rem;color:var(--text)">AI 調色助手</div>
+    <div style="font-size:14px;color:var(--text2);margin-bottom:1.8rem;line-height:1.7">
+      將你的庫存清單貼給 Claude，<br>請 AI 根據你現有的漆料，給出最精確的推薦與調色指南。
     </div>
-    <a href="https://claude.ai" target="_blank" class="btn btn-p" style="text-decoration:none;padding:0 24px;height:40px;font-size:14px">
-      ↗ 開啟 Claude 詢問調色
-    </a>
-    <div style="margin-top:1.25rem;background:var(--bg2);border-radius:var(--r);padding:1rem;text-align:left;font-size:12px;color:var(--text2);line-height:1.9">
-      <div style="font-weight:500;color:var(--text);margin-bottom:.4rem">💡 範例問法：</div>
-      <div>・我想漆夏亞的薩克，從我的庫存推薦紅色系調色步驟</div>
-      <div>・我有哪些藍色系漆料可以做漸層？</div>
-      <div>・幫我看庫存，推薦鋼彈白色裝甲的噴塗順序</div>
-      <div>・我想做舊化效果，庫存裡有什麼可以用？</div>
+    <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
+      <a href="https://claude.ai" target="_blank" class="btn btn-p" style="text-decoration:none;padding:0 24px;height:42px;font-size:14px">
+        ↗ 開啟 Claude
+      </a>
+      <button class="btn" onclick="copyInvText()" style="height:42px;padding:0 24px;font-size:14px;">
+        📋 複製庫存清單 (供 AI 使用)
+      </button>
+    </div>
+    <div style="margin-top:2rem;background:var(--bg2);border-radius:var(--r);padding:1.5rem;text-align:left;font-size:13px;color:var(--text2);line-height:2">
+      <div style="font-weight:600;color:var(--text);margin-bottom:.5rem;font-size:14px;">💡 範例問法：</div>
+      <div>・「我想漆夏亞的薩克，請參考我的庫存推薦紅色系的調色步驟。」</div>
+      <div>・「我有哪些藍色系漆料適合做漸層效果？」</div>
+      <div>・「幫我看庫存，推薦鋼彈白色裝甲的噴塗順序。」</div>
+      <div>・「我想做舊化效果，現有庫存裡有什麼可以運用？」</div>
     </div>
   </div>
 </div>
-</div>
 
-
+<!-- 上色企劃 -->
 <div class="panel" id="p-plan">
-  <div style="display:flex;gap:8px;margin-bottom:.9rem;flex-wrap:wrap;align-items:flex-end">
+  <div style="display:flex;gap:12px;margin-bottom:1.2rem;flex-wrap:wrap;align-items:flex-end">
     <div style="flex:1;min-width:200px">
-      <div style="font-size:11px;color:var(--text2);margin-bottom:3px">模型名稱</div>
-      <input type="text" id="plan-model" placeholder="例：MG Crossbone X1 Ver.Ka" style="width:100%;font-size:13px">
+      <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px">模型名稱</div>
+      <input type="text" id="plan-model" placeholder="例：MG Crossbone X1 Ver.Ka" style="width:100%">
     </div>
     <div style="flex:1;min-width:150px">
-      <div style="font-size:11px;color:var(--text2);margin-bottom:3px">施工方式</div>
-      <input type="text" id="plan-method" placeholder="例：平噴，不疊陰影" style="width:100%;font-size:13px">
+      <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px">施工方式</div>
+      <input type="text" id="plan-method" placeholder="例：平噴，不疊陰影" style="width:100%">
     </div>
-    <div>
+    <div style="display:flex;gap:8px;padding-bottom:1px;">
       <button class="btn btn-p" onclick="aiPlan()" id="ai-plan-btn">✦ AI 自動規劃</button>
-    </div>
-    <div>
       <button class="btn" onclick="addPlanRow()">+ 手動新增</button>
-    </div>
-    <div>
-      <button class="btn" onclick="printPlan()" style="background:#1a1a18;color:#fff;border-color:transparent">⎙ 匯出 PDF</button>
+      <button class="btn" onclick="printPlan()" style="background:var(--text2);color:#fff;border-color:transparent">⎙ 匯出 PDF</button>
     </div>
   </div>
-  <div id="ai-plan-status" style="font-size:12px;color:var(--text2);margin-bottom:.5rem;min-height:16px"></div>
+  <div id="ai-plan-status" style="font-size:12px;color:var(--text2);margin-bottom:.8rem;min-height:16px"></div>
 
-  <div id="plan-guide" style="display:none;margin-top:.9rem">
-    <div style="font-size:11px;font-weight:500;color:var(--text2);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.05em">上色步驟說明</div>
+  <div id="plan-guide" style="display:none;margin-top:1rem">
+    <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:.8rem;letter-spacing:.05em">上色步驟說明</div>
     <div id="plan-guide-content"></div>
   </div>
 
-  <div class="card" id="plan-table-wrap">
-    <table style="width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed">
+  <div class="card table-container" id="plan-table-wrap">
+    <table>
       <thead>
-        <tr style="background:var(--bg2)">
-          <th style="padding:8px 9px;text-align:left;font-weight:500;font-size:11px;color:var(--text2);border-bottom:.5px solid var(--border);width:14%">部位</th>
-          <th style="padding:8px 9px;text-align:left;font-weight:500;font-size:11px;color:var(--text2);border-bottom:.5px solid var(--border);width:20%">漆料</th>
-          <th style="padding:8px 9px;text-align:left;font-weight:500;font-size:11px;color:var(--text2);border-bottom:.5px solid var(--border);width:10%">色號</th>
-          <th style="padding:8px 9px;text-align:left;font-weight:500;font-size:11px;color:var(--text2);border-bottom:.5px solid var(--border);width:8%">庫存</th>
-          <th style="padding:8px 9px;text-align:left;font-weight:500;font-size:11px;color:var(--text2);border-bottom:.5px solid var(--border);width:10%">用途</th>
-          <th style="padding:8px 9px;text-align:left;font-weight:500;font-size:11px;color:var(--text2);border-bottom:.5px solid var(--border)">備注</th>
-          <th style="padding:8px 9px;width:40px;border-bottom:.5px solid var(--border)"></th>
+        <tr>
+          <th style="width:14%">部位</th>
+          <th style="width:20%">漆料</th>
+          <th style="width:12%">色號</th>
+          <th style="width:10%">庫存</th>
+          <th style="width:12%">用途</th>
+          <th>備注</th>
+          <th style="width:50px"></th>
         </tr>
       </thead>
       <tbody id="plan-tbody">
         <tr id="plan-empty-row">
-          <td colspan="7" style="padding:2rem;text-align:center;color:var(--text2);font-size:13px">點「新增部位」開始規劃</td>
+          <td colspan="7" style="padding:3rem;text-align:center;color:var(--text2);font-size:14px">點「新增部位」開始規劃</td>
         </tr>
       </tbody>
     </table>
   </div>
 </div>
 
-<!-- 列印用的隱藏報表 -->
 <div id="print-report" style="display:none"></div>
-
 <div id="mc"></div>
 <div class="toast" id="toast"></div>
 
 <script>
+// --- 保留你原本的所有常數與設定 (SHEET_ID, COLOR_MAP, SHOP_MAP, VALLEJO_MAP 等) ---
 const SHEET_ID = '1aFWuIyYVYrD8HIhiZPka_uUqodmldx5QSeCHBBn4y-w';
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
 const LKEY = 'pm_v5';
@@ -240,7 +254,43 @@ const COLOR_MAP = {"AB-01": "#ffffff", "AB-02": "#000000", "AB-03": "#ff0000", "
     "AX-101":"#9933cc","AX-102":"#33aacc","AX-103":"#66cc33","AX-104":"#33cc88",
     "AX-105":"#cc6633","AX-106":"#4433cc"};
 
+const SHOP_MAP = {
+  'ME-0[1-9]$|ME-1[0-9]$|ME-20$': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E5%99%B4%E5%A1%97-%E6%A9%9F%E7%94%B2%E8%89%B2-ME-%E7%B3%BB%E5%88%97-01-20-%E7%99%BD-%E7%81%B0-%E9%BB%91-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E7%B6%B1%E5%BD%88-%E6%A2%AF%E5%BA%A6%E5%88%86%E8%89%B2-i.944671855.25528384508',
+  'ME-2[1-9]$|ME-3[0-9]$|ME-40$': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E5%99%B4%E5%A1%97-%E6%A9%9F%E7%94%B2%E8%89%B2-ME-%E7%B3%BB%E5%88%97-21-40-%E7%B4%85-%E6%A9%98-%E8%97%8D-%E7%B4%AB-%E9%BB%83-9527-%E6%A2%AF%E5%BA%A6%E5%88%86%E8%89%B2-i.944671855.24378400038',
+  'ME-4[1-9]$|ME-5[0-9]$':        'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E5%99%B4%E5%A1%97-%E6%A9%9F%E7%94%B2%E8%89%B2-ME-%E7%B3%BB%E5%88%97-41-59-%E9%BB%83-%E6%A9%98-%E7%B6%A0-%E7%B2%89-%E9%8A%80%E7%B4%85-9527-%E6%A2%AF%E5%BA%A6%E5%88%86%E8%89%B2-i.944671855.23890023218',
+  'MEC-([0-2][0-9]|30|31)$':      'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E7%AD%86%E5%A1%97-%E6%A9%9F%E7%94%B2%E8%89%B2-MEC-01-31-%E7%B3%BB%E5%88%9711ml-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-i.944671855.24959633666',
+  'MEC-([3-5][0-9]|54)$':         'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E7%AD%86%E5%A1%97-%E6%A9%9F%E7%94%B2%E8%89%B2-MEC-31-54-%E7%B3%BB%E5%88%97-11ml-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-i.944671855.42051713281',
+  'MC':  'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E5%99%B4%E5%A1%97-%E9%87%91%E5%B1%AC%E6%BC%86-MC-%E7%B3%BB%E5%88%97-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-i.944671855.25909772324',
+  'ML':  'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E7%AD%86%E5%A1%97-%E9%87%91%E5%B1%AC%E6%BC%86-ML-%E7%B3%BB%E5%88%97-11ml-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-%E4%B9%9D%E4%BA%94%E4%BA%8C%E4%B8%83-i.944671855.25709637735',
+  'MCP': 'https://shopee.tw/people3x3',
+  'BP':  'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E7%AD%86%E5%A1%97-%E5%9F%BA%E7%A4%8E%E8%89%B2-BP-%E7%B3%BB%E5%88%97-11ml-9527-%E7%99%BD-%E9%BB%91-%E7%B4%85-%E6%A9%99-%E9%BB%83-%E7%B6%A0-%E8%97%8D-%E6%A3%95-%E6%B4%8B%E7%B4%85-i.944671855.27809739437',
+  'AB':  'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E5%99%B4%E5%A1%97-%E5%9F%BA%E7%A4%8E%E8%89%B2-AB-%E7%B3%BB%E5%88%97-%E7%99%BD-%E9%BB%91-%E7%B4%85-%E6%A9%99-%E9%BB%83-%E7%B6%A0-%E8%97%8D-%E9%88%B7%E7%B4%AB-%E6%B7%B1%E9%88%B7%E7%B4%AB-9527-i.944671855.24028470082',
+  'P':   'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E5%99%B4%E5%A1%97-%E5%BA%95%E6%BC%86%E8%A3%9C%E5%9C%9F-P-%E7%B3%BB%E5%88%97-%E8%A3%9C%E5%9C%9F-%E5%BA%95%E6%BC%86-%E6%B0%B4%E8%A3%9C%E5%9C%9F-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-i.944671855.24609894553',
+  'PP':  'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E7%AD%86%E5%A1%97-%E8%A3%9C%E5%9C%9F-PP-%E7%B3%BB%E5%88%97-11ml-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-i.944671855.24259638281',
+  'CP':  'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E5%99%B4%E5%A1%97-%E4%BF%9D%E8%AD%B7%E6%BC%86-CP-%E7%B3%BB%E5%88%97-%E9%80%8F%E6%98%8E%E6%BC%86-%E4%BA%AE%E5%85%89-%E6%B6%88%E5%85%89-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-i.944671855.25559777364',
+  'CPP': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E7%AD%86%E5%A1%97-%E4%BF%9D%E8%AD%B7%E6%BC%86-CPP-%E7%B3%BB%E5%88%97-%E9%80%8F%E6%98%8E%E6%BC%86-%E4%BA%AE%E5%85%89%E6%BC%86-%E6%B6%88%E5%85%89%E6%BC%86-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-i.944671855.25059637793',
+  'CL':  'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E5%99%B4%E5%A1%97-%E9%80%8F%E6%98%8E%E6%BC%86-CL-%E7%B3%BB%E5%88%97-%E9%80%8F%E6%98%8E%E8%89%B2%E6%BC%86-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-i.944671855.24659773030',
+  'CLP': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E7%AD%86%E5%A1%97-%E9%80%8F%E6%98%8E%E6%BC%86-CLP-%E7%B3%BB%E5%88%97-%E9%80%8F%E6%98%8E%E8%89%B2-11ml-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-%E5%BD%A9%E8%89%B2%E9%80%8F%E6%98%8E-i.944671855.24618346399',
+  'FLP': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E7%AD%86%E5%A1%97-%E8%9E%A2%E5%85%89%E8%89%B2-FLP-%E7%B3%BB%E5%88%97-11ml-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-%E4%B9%9D%E4%BA%94%E4%BA%8C%E4%B8%83-i.944671855.24114152901',
+  'SWP': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E7%AD%86%E5%A1%97-%E9%99%B0%E5%BD%B1%E6%BC%86-SWP-%E7%B3%BB%E5%88%97-%E6%BC%AC%E6%B4%97%E6%BC%86-11ml-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-i.944671855.44001842697',
+};
+const SHOPEE_STORE = 'https://shopee.tw/people3x3';
+const VALLEJO_MAP = {
+  'base_1': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-AV-Vallejo-Mecha-%E5%9F%BA%E7%A4%8E%E8%89%B2-69.001~025-%E6%B0%B4%E6%80%A7%E6%BC%86-AV%E6%BC%86-%E6%A9%9F%E7%94%B2%E8%89%B2-AV%E6%B0%B4%E6%BC%86-i.944671855.27706691700',
+  'base_2': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-AV-Vallejo-Mecha-%E5%9F%BA%E7%A4%8E%E8%89%B2-69.026~042-%E6%A9%9F%E7%94%B2%E7%B3%BB%E5%88%97-%E6%B0%B4%E6%80%A7%E6%BC%86-AV%E6%BC%86-%E6%A9%9F%E7%94%B2%E8%89%B2-AV%E6%B0%B4%E6%BC%86-i.944671855.26906693697',
+  'special': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-AV-Vallejo-Mecha-%E8%9E%A2%E5%85%89%E8%89%B2-%E9%87%91%E5%B1%AC%E8%89%B2-%E6%BC%AC%E6%B4%97%E6%B6%B2-%E6%A9%9F%E7%94%B2%E7%B3%BB%E5%88%97-%E6%B0%B4%E6%80%A7%E6%BC%86-AV%E6%BC%86-%E6%A9%9F%E7%94%B2%E8%89%B2-i.944671855.27006700184',
+  'primer': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-AV-Vallejo-Mecha-%E9%80%8F%E6%98%8E%E6%BC%86-%E5%BA%95%E6%BC%86-%E6%A9%9F%E7%94%B2%E7%B3%BB%E5%88%97-%E4%BF%9D%E8%AD%B7%E6%BC%86-%E5%BA%95%E8%89%B2-%E6%B0%B4%E6%80%A7%E6%BC%86-%E6%A9%9F%E7%94%B2%E8%89%B2-i.944671855.28206704003',
+};
+
 let paints = [], editId = null;
+
+// UI 通知系統
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
 
 function setSyncStatus(state, msg) {
   const dot = document.getElementById('sdot');
@@ -261,20 +311,13 @@ function parseCSVLine(line) {
 }
 function clean(s) { return s ? s.replace(/^["']|["']$/g,'').trim() : ''; }
 function guessColor(n) {
-  if(/白|White/.test(n)) return '#f5f5f5';
-  if(/黑|Black/.test(n)) return '#1a1a1a';
-  if(/紅|Red/.test(n)) return '#c0392b';
-  if(/藍|Blue/.test(n)) return '#2980b9';
-  if(/綠|Green/.test(n)) return '#27ae60';
-  if(/黃|Yellow/.test(n)) return '#f1c40f';
-  if(/橘|Orange/.test(n)) return '#e67e22';
-  if(/紫|Purple/.test(n)) return '#8e44ad';
-  if(/粉|Pink/.test(n)) return '#fd79a8';
-  if(/灰|Grey|Gray/.test(n)) return '#7f8c8d';
-  if(/金|Gold/.test(n)) return '#f0c040';
-  if(/銀|Silver/.test(n)) return '#bdc3c7';
-  if(/銅|Bronze|Copper/.test(n)) return '#cd7f32';
-  return '#aaaaaa';
+  if(/白|White/.test(n)) return '#f5f5f5'; if(/黑|Black/.test(n)) return '#1a1a1a';
+  if(/紅|Red/.test(n)) return '#c0392b'; if(/藍|Blue/.test(n)) return '#2980b9';
+  if(/綠|Green/.test(n)) return '#27ae60'; if(/黃|Yellow/.test(n)) return '#f1c40f';
+  if(/橘|Orange/.test(n)) return '#e67e22'; if(/紫|Purple/.test(n)) return '#8e44ad';
+  if(/粉|Pink/.test(n)) return '#fd79a8'; if(/灰|Grey|Gray/.test(n)) return '#7f8c8d';
+  if(/金|Gold/.test(n)) return '#f0c040'; if(/銀|Silver/.test(n)) return '#bdc3c7';
+  if(/銅|Bronze|Copper/.test(n)) return '#cd7f32'; return '#aaaaaa';
 }
 
 async function fetchSheets() {
@@ -320,44 +363,7 @@ async function fetchSheets() {
   btn.innerHTML = '↻';
 }
 
-
-// ── 購買連結 ──
-const SHOP_MAP = {
-  // 九五二漆 — 依色號前綴對應蝦皮商品頁
-  'ME-0[1-9]$|ME-1[0-9]$|ME-20$': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E5%99%B4%E5%A1%97-%E6%A9%9F%E7%94%B2%E8%89%B2-ME-%E7%B3%BB%E5%88%97-01-20-%E7%99%BD-%E7%81%B0-%E9%BB%91-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E7%B6%B1%E5%BD%88-%E6%A2%AF%E5%BA%A6%E5%88%86%E8%89%B2-i.944671855.25528384508',
-  'ME-2[1-9]$|ME-3[0-9]$|ME-40$': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E5%99%B4%E5%A1%97-%E6%A9%9F%E7%94%B2%E8%89%B2-ME-%E7%B3%BB%E5%88%97-21-40-%E7%B4%85-%E6%A9%98-%E8%97%8D-%E7%B4%AB-%E9%BB%83-9527-%E6%A2%AF%E5%BA%A6%E5%88%86%E8%89%B2-i.944671855.24378400038',
-  'ME-4[1-9]$|ME-5[0-9]$':        'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E5%99%B4%E5%A1%97-%E6%A9%9F%E7%94%B2%E8%89%B2-ME-%E7%B3%BB%E5%88%97-41-59-%E9%BB%83-%E6%A9%98-%E7%B6%A0-%E7%B2%89-%E9%8A%80%E7%B4%85-9527-%E6%A2%AF%E5%BA%A6%E5%88%86%E8%89%B2-i.944671855.23890023218',
-  'MEC-([0-2][0-9]|30|31)$':      'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E7%AD%86%E5%A1%97-%E6%A9%9F%E7%94%B2%E8%89%B2-MEC-01-31-%E7%B3%BB%E5%88%9711ml-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-i.944671855.24959633666',
-  'MEC-([3-5][0-9]|54)$':         'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E7%AD%86%E5%A1%97-%E6%A9%9F%E7%94%B2%E8%89%B2-MEC-31-54-%E7%B3%BB%E5%88%97-11ml-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-i.944671855.42051713281',
-  'MC':  'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E5%99%B4%E5%A1%97-%E9%87%91%E5%B1%AC%E6%BC%86-MC-%E7%B3%BB%E5%88%97-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-i.944671855.25909772324',
-  'ML':  'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E7%AD%86%E5%A1%97-%E9%87%91%E5%B1%AC%E6%BC%86-ML-%E7%B3%BB%E5%88%97-11ml-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-%E4%B9%9D%E4%BA%94%E4%BA%8C%E4%B8%83-i.944671855.25709637735',
-  'MCP': 'https://shopee.tw/people3x3',
-  'BP':  'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E7%AD%86%E5%A1%97-%E5%9F%BA%E7%A4%8E%E8%89%B2-BP-%E7%B3%BB%E5%88%97-11ml-9527-%E7%99%BD-%E9%BB%91-%E7%B4%85-%E6%A9%99-%E9%BB%83-%E7%B6%A0-%E8%97%8D-%E6%A3%95-%E6%B4%8B%E7%B4%85-i.944671855.27809739437',
-  'AB':  'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E5%99%B4%E5%A1%97-%E5%9F%BA%E7%A4%8E%E8%89%B2-AB-%E7%B3%BB%E5%88%97-%E7%99%BD-%E9%BB%91-%E7%B4%85-%E6%A9%99-%E9%BB%83-%E7%B6%A0-%E8%97%8D-%E9%88%B7%E7%B4%AB-%E6%B7%B1%E9%88%B7%E7%B4%AB-9527-i.944671855.24028470082',
-  'P':   'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E5%99%B4%E5%A1%97-%E5%BA%95%E6%BC%86%E8%A3%9C%E5%9C%9F-P-%E7%B3%BB%E5%88%97-%E8%A3%9C%E5%9C%9F-%E5%BA%95%E6%BC%86-%E6%B0%B4%E8%A3%9C%E5%9C%9F-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-i.944671855.24609894553',
-  'PP':  'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E7%AD%86%E5%A1%97-%E8%A3%9C%E5%9C%9F-PP-%E7%B3%BB%E5%88%97-11ml-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-i.944671855.24259638281',
-  'CP':  'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E5%99%B4%E5%A1%97-%E4%BF%9D%E8%AD%B7%E6%BC%86-CP-%E7%B3%BB%E5%88%97-%E9%80%8F%E6%98%8E%E6%BC%86-%E4%BA%AE%E5%85%89-%E6%B6%88%E5%85%89-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-i.944671855.25559777364',
-  'CPP': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E7%AD%86%E5%A1%97-%E4%BF%9D%E8%AD%B7%E6%BC%86-CPP-%E7%B3%BB%E5%88%97-%E9%80%8F%E6%98%8E%E6%BC%86-%E4%BA%AE%E5%85%89%E6%BC%86-%E6%B6%88%E5%85%89%E6%BC%86-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-i.944671855.25059637793',
-  'CL':  'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E5%99%B4%E5%A1%97-%E9%80%8F%E6%98%8E%E6%BC%86-CL-%E7%B3%BB%E5%88%97-%E9%80%8F%E6%98%8E%E8%89%B2%E6%BC%86-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-i.944671855.24659773030',
-  'CLP': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E7%AD%86%E5%A1%97-%E9%80%8F%E6%98%8E%E6%BC%86-CLP-%E7%B3%BB%E5%88%97-%E9%80%8F%E6%98%8E%E8%89%B2-11ml-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-%E5%BD%A9%E8%89%B2%E9%80%8F%E6%98%8E-i.944671855.24618346399',
-  'FLP': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E7%AD%86%E5%A1%97-%E8%9E%A2%E5%85%89%E8%89%B2-FLP-%E7%B3%BB%E5%88%97-11ml-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-%E4%B9%9D%E4%BA%94%E4%BA%8C%E4%B8%83-i.944671855.24114152901',
-  'SWP': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-%E4%B9%9D%E4%BA%94%E4%BA%8C%E6%BC%86-%E6%B0%B4%E6%80%A7%E7%AD%86%E5%A1%97-%E9%99%B0%E5%BD%B1%E6%BC%86-SWP-%E7%B3%BB%E5%88%97-%E6%BC%AC%E6%B4%97%E6%BC%86-11ml-9527-%E7%92%B0%E4%BF%9D-%E4%BD%8E%E6%AF%92%E6%80%A7-%E9%8B%BC%E5%BD%88-%E6%A8%A1%E5%9E%8B%E6%BC%86-%E7%AD%86%E5%A1%97%E6%BC%86-i.944671855.44001842697',
-};
-
-// Vallejo 依色號分頁
-const SHOPEE_STORE = 'https://shopee.tw/people3x3';
-const VALLEJO_MAP = {
-  'base_1': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-AV-Vallejo-Mecha-%E5%9F%BA%E7%A4%8E%E8%89%B2-69.001~025-%E6%B0%B4%E6%80%A7%E6%BC%86-AV%E6%BC%86-%E6%A9%9F%E7%94%B2%E8%89%B2-AV%E6%B0%B4%E6%BC%86-i.944671855.27706691700',
-  'base_2': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-AV-Vallejo-Mecha-%E5%9F%BA%E7%A4%8E%E8%89%B2-69.026~042-%E6%A9%9F%E7%94%B2%E7%B3%BB%E5%88%97-%E6%B0%B4%E6%80%A7%E6%BC%86-AV%E6%BC%86-%E6%A9%9F%E7%94%B2%E8%89%B2-AV%E6%B0%B4%E6%BC%86-i.944671855.26906693697',
-  'special': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-AV-Vallejo-Mecha-%E8%9E%A2%E5%85%89%E8%89%B2-%E9%87%91%E5%B1%AC%E8%89%B2-%E6%BC%AC%E6%B4%97%E6%B6%B2-%E6%A9%9F%E7%94%B2%E7%B3%BB%E5%88%97-%E6%B0%B4%E6%80%A7%E6%BC%86-AV%E6%BC%86-%E6%A9%9F%E7%94%B2%E8%89%B2-i.944671855.27006700184',
-  'primer': 'https://shopee.tw/-%E4%BB%8E%E4%BA%BA-AV-Vallejo-Mecha-%E9%80%8F%E6%98%8E%E6%BC%86-%E5%BA%95%E6%BC%86-%E6%A9%9F%E7%94%B2%E7%B3%BB%E5%88%97-%E4%BF%9D%E8%AD%B7%E6%BC%86-%E5%BA%95%E8%89%B2-%E6%B0%B4%E6%80%A7%E6%BC%86-%E6%A9%9F%E7%94%B2%E8%89%B2-i.944671855.28206704003',
-};
-
 function getVallejoUrl(code) {
-  // 70.640~642 → 底漆頁
-  // 69.001~025 → 基礎色第一頁
-  // 69.026~042 → 基礎色第二頁
-  // 其他 → 螢光/金屬/漬洗頁
   if (code.startsWith('70.')) return VALLEJO_MAP['primer'];
   const m = code.match(/^69\.0*(\d+)/);
   if (m) {
@@ -372,7 +378,6 @@ function getShopUrl(p) {
   if (p.brand === 'MODO') return 'https://shopee.tw/modocolors';
   if (p.brand === 'Vallejo') return getVallejoUrl(p.code);
   const code = p.code;
-  // ME 系列需要依號碼分三段
   const meNum = code.match(/^ME-(\d+)$/);
   if (meNum) {
     const n = parseInt(meNum[1]);
@@ -380,33 +385,27 @@ function getShopUrl(p) {
     if (n <= 40) return SHOP_MAP['ME-2[1-9]$|ME-3[0-9]$|ME-40$'];
     return SHOP_MAP['ME-4[1-9]$|ME-5[0-9]$'];
   }
-  // MEC 系列分兩段
   const mecNum = code.match(/^MEC-(\d+)$/);
   if (mecNum) {
     const n = parseInt(mecNum[1]);
     if (n <= 31) return SHOP_MAP['MEC-([0-2][0-9]|30|31)$'];
     return SHOP_MAP['MEC-([3-5][0-9]|54)$'];
   }
-  // 其他系列直接前綴匹配（長的優先）
   const prefixes = ['CPP','CLP','SWP','FLP','MCP','MC','ML','BP','AB','PP','CP','CL','P'];
-  for (const k of prefixes) {
-    if (code.startsWith(k)) return SHOP_MAP[k] || SHOPEE_STORE;
-  }
+  for (const k of prefixes) { if (code.startsWith(k)) return SHOP_MAP[k] || SHOPEE_STORE; }
   return SHOPEE_STORE;
 }
 
 function isMetallic(p) {
   const metalPrefixes = ['ML-','MC-','AM-','AX-'];
   const metalNames = ['金','銀','銅','鐵','鋼','鉻','鈦','金屬','Metal','Silver','Gold','Copper','Iron'];
-  return metalPrefixes.some(pre => p.code.startsWith(pre)) ||
-         metalNames.some(n => p.name.includes(n));
+  return metalPrefixes.some(pre => p.code.startsWith(pre)) || metalNames.some(n => p.name.includes(n));
 }
 
 function getSwatchStyle(p) {
   const c = p.color || '#ccc';
   if (isMetallic(p)) {
-    // 金屬光澤效果：用 radial-gradient 模擬高光
-    return `background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.7) 0%, ${c} 40%, rgba(0,0,0,0.25) 100%); box-shadow: inset 0 1px 2px rgba(255,255,255,0.5), inset 0 -1px 2px rgba(0,0,0,0.3);`;
+    return `background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.8) 0%, ${c} 45%, rgba(0,0,0,0.4) 100%);`;
   }
   return `background:${c}`;
 }
@@ -422,6 +421,7 @@ function sb(q) {
   if (q <= 1) return '<span class="badge blow">不足</span>';
   return '<span class="badge bok">充足</span>';
 }
+
 function filt() {
   const q = document.getElementById('q').value.toLowerCase();
   const fb = document.getElementById('fb').value;
@@ -434,6 +434,27 @@ function filt() {
     return mq && (!fb||p.brand===fb) && (!ft||p.type===ft) && (!ftag||p.tag===ftag) && ms;
   });
 }
+
+// ✅ 新增：一鍵重置所有篩選
+function resetFilters() {
+  document.getElementById('q').value = '';
+  document.getElementById('fb').value = '';
+  document.getElementById('ft').value = '';
+  document.getElementById('ftag').value = '';
+  document.getElementById('fstock').value = '';
+  render();
+  toast('篩選條件已重置');
+}
+
+// ✅ 新增：複製庫存給 AI
+function copyInvText() {
+  if (!paints.length) { toast('目前無庫存資料'); return; }
+  const text = paints.map(p => `${p.brand} ${p.name} (${p.code}) - 庫存:${p.qty}`).join('\n');
+  navigator.clipboard.writeText('這是我的模型漆庫存清單，請參考這份清單給我調色或上色建議：\n\n' + text).then(() => {
+    toast('✅ 已複製庫存清單！可直接貼給 Claude');
+  });
+}
+
 function render() {
   const list = filt();
   const tb = document.getElementById('tb');
@@ -451,7 +472,7 @@ function render() {
       <td class="c8">
         <button class="abtn" onclick="openEdit(${p.id})" title="編輯">✎</button>
         <button class="abtn delbtn" onclick="del(${p.id})" title="刪除">✕</button>
-        <a class="abtn" href="${getShopUrl(p)}" target="_blank" title="購買" style="display:inline-flex;align-items:center;text-decoration:none;${p.qty===0?'color:var(--dtx)':p.qty<=1?'color:var(--wtx)':'color:var(--text2)'}">🛒</a>
+        <a class="abtn" href="${getShopUrl(p)}" target="_blank" title="前往購買" style="display:inline-flex;align-items:center;text-decoration:none;${p.qty===0?'color:var(--dtx)':p.qty<=1?'color:var(--wtx)':'color:var(--text2)'}">🛒</a>
       </td></tr>`).join('');
   }
   document.getElementById('s0').textContent = paints.length;
@@ -465,7 +486,6 @@ function switchTab(name) {
     document.getElementById('tab-'+n).classList.toggle('on', n===name);
     document.getElementById('p-'+n).classList.toggle('on', n===name);
   });
-  if (name === 'ai') checkKey();
   if (name === 'plan') buildPaintDatalist();
 }
 
@@ -484,7 +504,7 @@ function showModal(p) {
       <div class="fi"><label>漆料名稱</label><input type="text" id="fn" value="${p.name}" placeholder="例：白練"></div>
       <div class="r2">
         <div class="fi"><label>品牌</label>
-          <select id="fb2">${['九五二漆','Vallejo','其他'].map(b=>`<option ${p.brand===b?'selected':''}>${b}</option>`).join('')}</select>
+          <select id="fb2">${['九五二漆','Vallejo','MODO','其他'].map(b=>`<option ${p.brand===b?'selected':''}>${b}</option>`).join('')}</select>
         </div>
         <div class="fi"><label>色號</label><input type="text" id="fc" value="${p.code}"></div>
       </div>
@@ -498,7 +518,7 @@ function showModal(p) {
       </div>
       <div class="r2">
         <div class="fi"><label>數量（罐）</label><input type="number" id="fq" value="${p.qty}" min="0" max="99" step="0.5"></div>
-        <div class="fi"><label>顏色</label><input type="color" id="fcolor" value="${p.color||'#cccccc'}" style="height:34px;padding:2px"></div>
+        <div class="fi"><label>顏色</label><input type="color" id="fcolor" value="${p.color||'#cccccc'}" style="height:38px;padding:2px;cursor:pointer;"></div>
       </div>
       <div class="fi"><label>備注</label><input type="text" id="fnote" value="${p.note||''}" placeholder="可留空"></div>
       <div class="mact">
@@ -541,10 +561,7 @@ function exportCSV() {
   a.download='paints.csv'; a.click(); toast('CSV 已匯出');
 }
 
-
 // ── 密碼登入 ──
-// 密碼的 SHA-256 hash，預設密碼請自行設定
-// 第一次輸入任意密碼會自動設為你的密碼
 const AUTH_KEY = 'pm_pwd_v2';
 const AUTH_EXP = 'pm_pwd_exp';
 const DAYS = 30;
@@ -558,6 +575,7 @@ function unlock() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('main-wrap').style.display = 'block';
   fetchSheets();
+  loadPlanLocal(); // 解鎖時載入自動存檔的企劃
 }
 
 async function doLogin() {
@@ -566,7 +584,6 @@ async function doLogin() {
   const hash = await sha256(pwd);
   const saved = localStorage.getItem(AUTH_KEY);
   if (!saved) {
-    // 第一次：設定密碼
     localStorage.setItem(AUTH_KEY, hash);
     setExp();
     unlock();
@@ -583,17 +600,12 @@ async function doLogin() {
   }
 }
 
-function setExp() {
-  localStorage.setItem(AUTH_EXP, Date.now() + DAYS * 86400000);
-}
+function setExp() { localStorage.setItem(AUTH_EXP, Date.now() + DAYS * 86400000); }
 
 function checkAuth() {
   const saved = localStorage.getItem(AUTH_KEY);
   const exp = parseInt(localStorage.getItem(AUTH_EXP) || '0');
-  if (saved && Date.now() < exp) {
-    unlock();
-  }
-  // 否則顯示登入頁
+  if (saved && Date.now() < exp) unlock();
 }
 
 document.getElementById('pwd').addEventListener('keydown', e => {
@@ -610,8 +622,54 @@ function doLogout() {
 
 checkAuth();
 
-// ── 上色企劃 ──
+// ── 上色企劃 & Auto Save ──
 let planRowId = 0;
+const PLAN_KEY = 'pm_plan_data_v1';
+
+// ✅ 新增：將企劃儲存到 LocalStorage
+function savePlanLocal() {
+  const rows = [];
+  document.querySelectorAll('#plan-tbody tr[id^="plan-row-"]').forEach(tr => {
+    const id = tr.id.replace('plan-row-', '');
+    rows.push({
+      part: document.getElementById('pr-part-'+id)?.value || '',
+      paint: document.getElementById('pr-paint-'+id)?.value || '',
+      role: document.getElementById('pr-role-'+id)?.value || '主色',
+      note: document.getElementById('pr-note-'+id)?.value || ''
+    });
+  });
+  const model = document.getElementById('plan-model').value;
+  const method = document.getElementById('plan-method').value;
+  localStorage.setItem(PLAN_KEY, JSON.stringify({ model, method, rows }));
+}
+
+// ✅ 新增：從 LocalStorage 讀取企劃
+function loadPlanLocal() {
+  const data = localStorage.getItem(PLAN_KEY);
+  if (data) {
+    try {
+      const parsed = JSON.parse(data);
+      if(parsed.model) document.getElementById('plan-model').value = parsed.model;
+      if(parsed.method) document.getElementById('plan-method').value = parsed.method;
+      if (parsed.rows && parsed.rows.length > 0) {
+        document.getElementById('plan-tbody').innerHTML = '';
+        parsed.rows.forEach(r => {
+          addPlanRow(); // 產生新行
+          const id = planRowId;
+          document.getElementById('pr-part-'+id).value = r.part;
+          document.getElementById('pr-paint-'+id).value = r.paint;
+          document.getElementById('pr-role-'+id).value = r.role;
+          document.getElementById('pr-note-'+id).value = r.note;
+          onPaintInput(id); // 觸發顏色/庫存更新
+        });
+      }
+    } catch(e) {}
+  }
+}
+
+// 綁定企劃表單的變更事件來自動存檔
+document.getElementById('p-plan').addEventListener('input', savePlanLocal);
+document.getElementById('p-plan').addEventListener('change', savePlanLocal);
 
 function buildPaintDatalist() {
   let dl = document.getElementById('paint-datalist');
@@ -626,7 +684,6 @@ function buildPaintDatalist() {
 }
 
 function addPlanRow() {
-  if (!paints || !paints.length) { toast('請先等庫存載入'); return; }
   buildPaintDatalist();
   const id = ++planRowId;
   const tbody = document.getElementById('plan-tbody');
@@ -634,21 +691,21 @@ function addPlanRow() {
   if (emptyRow) emptyRow.remove();
   const tr = document.createElement('tr');
   tr.id = 'plan-row-' + id;
-  tr.style.borderBottom = '.5px solid var(--border)';
   tr.innerHTML =
-    '<td style="padding:5px 6px"><input type="text" placeholder="例：主裝甲" style="width:100%;font-size:12px;border:.5px solid var(--border2);border-radius:6px;padding:4px 7px;background:var(--bg);color:var(--text)" id="pr-part-' + id + '"></td>' +
-    '<td style="padding:5px 6px"><div style="display:flex;align-items:center;gap:4px">' +
-      '<div id="pr-swatch-' + id + '" style="width:14px;height:14px;border-radius:3px;border:.5px solid #ccc;flex-shrink:0;background:#ccc"></div>' +
-      '<input type="text" list="paint-datalist" placeholder="選擇漆料" style="flex:1;min-width:0;font-size:12px;border:.5px solid var(--border2);border-radius:6px;padding:4px 7px;background:var(--bg);color:var(--text)" id="pr-paint-' + id + '" oninput="onPaintInput(' + id + ')">' +
+    '<td style="padding:8px 10px"><input type="text" placeholder="例：主裝甲" style="width:100%;font-size:12px;border:1px solid var(--border2);border-radius:6px;padding:6px 8px;background:var(--bg);color:var(--text)" id="pr-part-' + id + '"></td>' +
+    '<td style="padding:8px 10px"><div style="display:flex;align-items:center;gap:6px">' +
+      '<div id="pr-swatch-' + id + '" style="width:16px;height:16px;border-radius:4px;border:1px solid rgba(0,0,0,0.15);flex-shrink:0;background:#ccc"></div>' +
+      '<input type="text" list="paint-datalist" placeholder="選擇漆料" style="flex:1;min-width:0;font-size:12px;border:1px solid var(--border2);border-radius:6px;padding:6px 8px;background:var(--bg);color:var(--text)" id="pr-paint-' + id + '" oninput="onPaintInput(' + id + ')">' +
     '</div></td>' +
-    '<td style="padding:5px 6px"><span id="pr-code-' + id + '" style="font-size:11px;color:var(--text2);font-family:monospace">—</span></td>' +
-    '<td style="padding:5px 6px"><span id="pr-qty-' + id + '" style="font-size:11px;color:var(--text2)">—</span></td>' +
-    '<td style="padding:5px 6px"><select id="pr-role-' + id + '" style="font-size:11px;border:.5px solid var(--border2);border-radius:6px;padding:3px 5px;background:var(--bg);color:var(--text);width:100%">' +
+    '<td style="padding:8px 10px"><span id="pr-code-' + id + '" style="font-size:11px;color:var(--text2);font-family:monospace">—</span></td>' +
+    '<td style="padding:8px 10px"><span id="pr-qty-' + id + '" style="font-size:11px;color:var(--text2);font-weight:600">—</span></td>' +
+    '<td style="padding:8px 10px"><select id="pr-role-' + id + '" style="font-size:12px;border:1px solid var(--border2);border-radius:6px;padding:5px 8px;background:var(--bg);color:var(--text);width:100%">' +
       '<option>主色</option><option>底色</option><option>陰影</option><option>亮面</option><option>罩染</option><option>金屬</option><option>保護漆</option><option>補土</option>' +
     '</select></td>' +
-    '<td style="padding:5px 6px"><input type="text" placeholder="備注" style="width:100%;font-size:12px;border:.5px solid var(--border2);border-radius:6px;padding:4px 7px;background:var(--bg);color:var(--text)" id="pr-note-' + id + '"></td>' +
-    '<td style="padding:5px 6px;text-align:center"><button onclick="removePlanRow(' + id + ')" style="background:none;border:none;cursor:pointer;color:var(--text2);font-size:14px">✕</button></td>';
+    '<td style="padding:8px 10px"><input type="text" placeholder="備注" style="width:100%;font-size:12px;border:1px solid var(--border2);border-radius:6px;padding:6px 8px;background:var(--bg);color:var(--text)" id="pr-note-' + id + '"></td>' +
+    '<td style="padding:8px 10px;text-align:center"><button class="abtn delbtn" onclick="removePlanRow(' + id + ')" title="移除">✕</button></td>';
   tbody.appendChild(tr);
+  savePlanLocal(); // 新增行時存檔
 }
 
 function onPaintInput(id) {
@@ -660,7 +717,7 @@ function onPaintInput(id) {
     document.getElementById('pr-qty-' + id).style.color = p.qty === 0 ? 'var(--dtx)' : p.qty <= 1 ? 'var(--wtx)' : 'var(--oktx)';
     var sw = document.getElementById('pr-swatch-' + id);
     if (isMetallic(p)) {
-      sw.style.background = 'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.7) 0%, ' + (p.color||'#ccc') + ' 40%, rgba(0,0,0,0.25) 100%)';
+      sw.style.background = 'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.8) 0%, ' + (p.color||'#ccc') + ' 45%, rgba(0,0,0,0.4) 100%)';
     } else {
       sw.style.background = p.color || '#ccc';
     }
@@ -674,9 +731,10 @@ function removePlanRow(id) {
   if (!tbody.children.length) {
     var tr = document.createElement('tr');
     tr.id = 'plan-empty-row';
-    tr.innerHTML = '<td colspan="7" style="padding:2rem;text-align:center;color:var(--text2);font-size:13px">點「新增部位」開始規劃</td>';
+    tr.innerHTML = '<td colspan="7" style="padding:3rem;text-align:center;color:var(--text2);font-size:14px">點「新增部位」開始規劃</td>';
     tbody.appendChild(tr);
   }
+  savePlanLocal(); // 刪除行時存檔
 }
 
 async function fetchGuide(model, method, steps) {
@@ -699,9 +757,9 @@ async function fetchGuide(model, method, steps) {
 
 function renderGuide(steps, guide) {
   guide = guide || [];
-  const guide = document.getElementById('plan-guide');
+  const guideEl = document.getElementById('plan-guide');
   const content = document.getElementById('plan-guide-content');
-  if (!steps || !steps.length) { guide.style.display = 'none'; return; }
+  if (!steps || !steps.length) { guideEl.style.display = 'none'; return; }
 
   const roleStyle = {
     '主色':'background:#e6f1fb;color:#0c447c','底色':'background:#fcebeb;color:#a32d2d',
@@ -717,12 +775,12 @@ function renderGuide(steps, guide) {
         'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.7) 0%, ' + (paint.color||'#ccc') + ' 40%, rgba(0,0,0,0.25) 100%)' :
         (paint.color||'#ccc')) : '#ccc';
       const rs = roleStyle[p.role] || 'background:#f0f0ee;color:#6b6b67';
-      return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:.5px solid var(--border)">' +
-        '<div style="width:14px;height:14px;border-radius:3px;border:.5px solid #ccc;flex-shrink:0;background:' + color + '"></div>' +
-        '<span style="font-size:12px;font-weight:500;flex:1">' + (p.part||'') + '</span>' +
-        '<span style="font-size:12px;color:var(--text2);flex:2">' + (p.name||'') + '</span>' +
-        '<span style="font-size:11px;color:var(--text2);font-family:monospace;flex:1">' + (p.code||'') + '</span>' +
-        '<span style="font-size:11px;padding:2px 6px;border-radius:8px;' + rs + '">' + (p.role||'') + '</span>' +
+      return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">' +
+        '<div style="width:16px;height:16px;border-radius:4px;border:1px solid #ccc;flex-shrink:0;background:' + color + '"></div>' +
+        '<span style="font-size:13px;font-weight:500;flex:1">' + (p.part||'') + '</span>' +
+        '<span style="font-size:13px;color:var(--text2);flex:2">' + (p.name||'') + '</span>' +
+        '<span style="font-size:12px;color:var(--text2);font-family:monospace;flex:1">' + (p.code||'') + '</span>' +
+        '<span style="font-size:11px;padding:2px 8px;border-radius:8px;' + rs + '">' + (p.role||'') + '</span>' +
         (p.note ? '<span style="font-size:11px;color:var(--wtx)">' + p.note + '</span>' : '') +
       '</div>';
     }).join('');
@@ -731,23 +789,23 @@ function renderGuide(steps, guide) {
       '<span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;background:#e6f1fb;color:#0c447c">噴塗</span>' :
       '<span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;background:#eaf3de;color:#3b6d11">筆塗</span>';
 
-    return '<div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);margin-bottom:8px;overflow:hidden">' +
-      '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg2);border-bottom:.5px solid var(--border)">' +
-        '<div style="width:22px;height:22px;border-radius:50%;background:var(--text);color:var(--bg);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">' + step.step + '</div>' +
-        '<span style="font-size:13px;font-weight:500;flex:1">' + (step.title||'') + '</span>' +
+    return '<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);margin-bottom:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.02)">' +
+      '<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--bg2);border-bottom:1px solid var(--border)">' +
+        '<div style="width:24px;height:24px;border-radius:50%;background:var(--text);color:var(--bg);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">' + step.step + '</div>' +
+        '<span style="font-size:14px;font-weight:600;flex:1">' + (step.title||'') + '</span>' +
         methodBadge +
       '</div>' +
       (function() {
         var g = guide.find(function(x) { return x.step === step.step; });
         if (!g) return '';
-        return (g.tip ? '<div style="padding:7px 12px;font-size:12px;color:var(--text2);background:var(--bg);border-bottom:.5px solid var(--border);line-height:1.6">💡 ' + g.tip + '</div>' : '') +
-               (g.caution ? '<div style="padding:5px 12px;font-size:11px;color:var(--wtx);background:var(--wbg);border-bottom:.5px solid var(--border)">⚠️ ' + g.caution + '</div>' : '');
+        return (g.tip ? '<div style="padding:8px 14px;font-size:13px;color:var(--text2);background:var(--bg);border-bottom:1px solid var(--border);line-height:1.6">💡 ' + g.tip + '</div>' : '') +
+               (g.caution ? '<div style="padding:6px 14px;font-size:12px;color:var(--wtx);background:var(--wbg);border-bottom:1px solid var(--border)">⚠️ ' + g.caution + '</div>' : '');
       })() +
-      '<div style="padding:4px 12px">' + paintsHtml + '</div>' +
+      '<div style="padding:6px 14px">' + paintsHtml + '</div>' +
     '</div>';
   }).join('');
 
-  guide.style.display = 'block';
+  guideEl.style.display = 'block';
 }
 
 async function aiPlan() {
@@ -774,11 +832,8 @@ async function aiPlan() {
     const data = await res.json();
     if (data.error) throw new Error(data.error);
 
-    // Clear existing rows
     const tbody = document.getElementById('plan-tbody');
     tbody.innerHTML = '';
-
-    // Fill in rows from AI response
     let rowCount = 0;
     if (data.steps && data.steps.length) {
       data.steps.forEach(function(step) {
@@ -789,7 +844,6 @@ async function aiPlan() {
             const color = p ? (isMetallic(p) ?
               'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.7) 0%, ' + (p.color||'#ccc') + ' 40%, rgba(0,0,0,0.25) 100%)' :
               (p.color||'#ccc')) : '#ccc';
-            // Escape HTML special chars in paint name
             const safeName = (paint.name||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
             const safePart = (paint.part||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
             const safeNote = (paint.note||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -798,24 +852,23 @@ async function aiPlan() {
 
             const tr = document.createElement('tr');
             tr.id = 'plan-row-' + id;
-            tr.style.borderBottom = '.5px solid var(--border)';
             tr.innerHTML =
-              '<td style="padding:5px 6px"><input type="text" value="' + safePart + '" style="width:100%;font-size:12px;border:.5px solid var(--border2);border-radius:6px;padding:4px 7px;background:var(--bg);color:var(--text)" id="pr-part-' + id + '"></td>' +
-              '<td style="padding:5px 6px"><div style="display:flex;align-items:center;gap:4px">' +
-                '<div id="pr-swatch-' + id + '" style="width:14px;height:14px;border-radius:3px;border:.5px solid #ccc;flex-shrink:0;background:' + color + '"></div>' +
-                '<input type="text" list="paint-datalist" value="' + safeName + '" style="flex:1;min-width:0;font-size:12px;border:.5px solid var(--border2);border-radius:6px;padding:4px 7px;background:var(--bg);color:var(--text)" id="pr-paint-' + id + '" oninput="onPaintInput(' + id + ')">' +
+              '<td style="padding:8px 10px"><input type="text" value="' + safePart + '" style="width:100%;font-size:12px;border:1px solid var(--border2);border-radius:6px;padding:6px 8px;background:var(--bg);color:var(--text)" id="pr-part-' + id + '"></td>' +
+              '<td style="padding:8px 10px"><div style="display:flex;align-items:center;gap:6px">' +
+                '<div id="pr-swatch-' + id + '" style="width:16px;height:16px;border-radius:4px;border:1px solid rgba(0,0,0,0.15);flex-shrink:0;background:' + color + '"></div>' +
+                '<input type="text" list="paint-datalist" value="' + safeName + '" style="flex:1;min-width:0;font-size:12px;border:1px solid var(--border2);border-radius:6px;padding:6px 8px;background:var(--bg);color:var(--text)" id="pr-paint-' + id + '" oninput="onPaintInput(' + id + ')">' +
               '</div></td>' +
-              '<td style="padding:5px 6px"><span id="pr-code-' + id + '" style="font-size:11px;color:var(--text2);font-family:monospace">' + (paint.code||'—') + '</span></td>' +
-              '<td style="padding:5px 6px"><span id="pr-qty-' + id + '" style="font-size:11px;color:' + qtyColor + ';font-weight:500">' + qty + ' 罐</span></td>' +
-              '<td style="padding:5px 6px"><select id="pr-role-' + id + '" style="font-size:11px;border:.5px solid var(--border2);border-radius:6px;padding:3px 5px;background:var(--bg);color:var(--text);width:100%">' +
+              '<td style="padding:8px 10px"><span id="pr-code-' + id + '" style="font-size:11px;color:var(--text2);font-family:monospace">' + (paint.code||'—') + '</span></td>' +
+              '<td style="padding:8px 10px"><span id="pr-qty-' + id + '" style="font-size:11px;color:' + qtyColor + ';font-weight:600">' + qty + ' 罐</span></td>' +
+              '<td style="padding:8px 10px"><select id="pr-role-' + id + '" style="font-size:12px;border:1px solid var(--border2);border-radius:6px;padding:5px 8px;background:var(--bg);color:var(--text);width:100%">' +
                 ['主色','底色','陰影','亮面','罩染','金屬','保護漆','補土'].map(function(r) {
                   return '<option' + (r === paint.role ? ' selected' : '') + '>' + r + '</option>';
                 }).join('') +
               '</select></td>' +
-              '<td style="padding:5px 6px"><input type="text" value="' + safeNote + '" style="width:100%;font-size:12px;border:.5px solid var(--border2);border-radius:6px;padding:4px 7px;background:var(--bg);color:var(--text)" id="pr-note-' + id + '"></td>' +
-              '<td style="padding:5px 6px;text-align:center"><button onclick="removePlanRow(' + id + ')" style="background:none;border:none;cursor:pointer;color:var(--text2);font-size:14px">✕</button></td>';
+              '<td style="padding:8px 10px"><input type="text" value="' + safeNote + '" style="width:100%;font-size:12px;border:1px solid var(--border2);border-radius:6px;padding:6px 8px;background:var(--bg);color:var(--text)" id="pr-note-' + id + '"></td>' +
+              '<td style="padding:8px 10px;text-align:center"><button class="abtn delbtn" onclick="removePlanRow(' + id + ')" title="移除">✕</button></td>';
             tbody.appendChild(tr);
-            // Set values via DOM to avoid encoding issues
+            
             var partEl = document.getElementById('pr-part-' + id);
             var paintEl = document.getElementById('pr-paint-' + id);
             var noteEl = document.getElementById('pr-note-' + id);
@@ -830,8 +883,7 @@ async function aiPlan() {
 
     status.textContent = 'AI 已自動規劃 ' + rowCount + ' 個部位，正在生成施工說明...';
     status.style.color = 'var(--oktx)';
-
-    // 第二次請求：生成步驟說明
+    savePlanLocal(); // AI 產出後自動存檔
     fetchGuide(model, method, data.steps || []);
   } catch(e) {
     status.textContent = '規劃失敗：' + e.message;
@@ -880,13 +932,12 @@ function printPlan() {
       '<td style="padding:7pt 8pt;border-bottom:.5pt solid #e8e8e6;font-size:8pt;color:#6b6b67">' + r.note + '</td>' +
     '</tr>';
   }).join('');
-  // Collect guide steps for PDF
   var guideHtml = '';
   var guideEl = document.getElementById('plan-guide');
   if (guideEl && guideEl.style.display !== 'none') {
     var steps2 = [];
     document.querySelectorAll('#plan-guide-content > div').forEach(function(div, i) {
-      var title = div.querySelector('span[style*="font-weight:500"]');
+      var title = div.querySelector('span[style*="font-weight:600"]');
       var tip = div.querySelector('div[style*="line-height"]');
       if (title) steps2.push({ title: title.textContent, tip: tip ? tip.textContent.replace('💡 ','') : '' });
     });
@@ -900,11 +951,11 @@ function printPlan() {
   }
 
   var printHtml = '<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><title>' + model + ' — 上色企劃</title>' +
-    '<style>@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap");' +
+    '<style>@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap");' +
     '@page{size:A4;margin:14mm 16mm}*{box-sizing:border-box;margin:0;padding:0}' +
     'body{font-family:"Noto Sans TC",sans-serif;color:#1a1a18;font-size:9pt;background:#fff}' +
     'table{width:100%;border-collapse:collapse}' +
-    'th{background:#f5f5f3;padding:7pt 8pt;text-align:left;font-weight:500;font-size:8pt;color:#6b6b67;border-bottom:1pt solid #1a1a18}' +
+    'th{background:#f5f5f3;padding:7pt 8pt;text-align:left;font-weight:600;font-size:8pt;color:#6b6b67;border-bottom:1pt solid #1a1a18}' +
     '</style></head><body>' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:3pt">' +
       '<h1 style="font-size:16pt;font-weight:700">' + model + '</h1>' +
@@ -917,14 +968,13 @@ function printPlan() {
       '<th style="width:9%">用途</th><th>備注</th>' +
     '</tr></thead><tbody>' + rowsHtml + '</tbody></table>' +
     guideHtml +
-    '<div style="margin-top:14pt;font-size:7pt;color:#aaa;text-align:center;border-top:.5pt solid #e0e0de;padding-top:5pt">漆料庫存管理 transcendent-sprinkles-280c0b.netlify.app</div>' +
+    '<div style="margin-top:14pt;font-size:7pt;color:#aaa;text-align:center;border-top:.5pt solid #e0e0de;padding-top:5pt">模型漆料庫存管理與企劃</div>' +
     '</body></html>';
   var win = window.open('', '_blank');
   win.document.write(printHtml);
   win.document.close();
   setTimeout(function() { win.print(); }, 800);
 }
-
 </script>
 </body>
 </html>
