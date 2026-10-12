@@ -602,6 +602,140 @@ function doLogout() {
 }
 
 checkAuth();
+
+// ── 上色企劃 ──
+let planRowId = 0;
+
+function buildPaintDatalist() {
+  let dl = document.getElementById('paint-datalist');
+  if (!dl) {
+    dl = document.createElement('datalist');
+    dl.id = 'paint-datalist';
+    document.body.appendChild(dl);
+  }
+  dl.innerHTML = paints.map(p =>
+    '<option value="' + p.name + '（' + p.code + '）" data-code="' + p.code + '" data-qty="' + p.qty + '" data-color="' + (p.color||'#ccc') + '">'
+  ).join('');
+}
+
+function addPlanRow() {
+  if (!paints || !paints.length) { toast('請先等庫存載入'); return; }
+  buildPaintDatalist();
+  const id = ++planRowId;
+  const tbody = document.getElementById('plan-tbody');
+  const emptyRow = document.getElementById('plan-empty-row');
+  if (emptyRow) emptyRow.remove();
+  const tr = document.createElement('tr');
+  tr.id = 'plan-row-' + id;
+  tr.style.borderBottom = '.5px solid var(--border)';
+  tr.innerHTML =
+    '<td style="padding:5px 6px"><input type="text" placeholder="例：主裝甲" style="width:100%;font-size:12px;border:.5px solid var(--border2);border-radius:6px;padding:4px 7px;background:var(--bg);color:var(--text)" id="pr-part-' + id + '"></td>' +
+    '<td style="padding:5px 6px"><div style="display:flex;align-items:center;gap:4px">' +
+      '<div id="pr-swatch-' + id + '" style="width:14px;height:14px;border-radius:3px;border:.5px solid #ccc;flex-shrink:0;background:#ccc"></div>' +
+      '<input type="text" list="paint-datalist" placeholder="選擇漆料" style="flex:1;min-width:0;font-size:12px;border:.5px solid var(--border2);border-radius:6px;padding:4px 7px;background:var(--bg);color:var(--text)" id="pr-paint-' + id + '" oninput="onPaintInput(' + id + ')">' +
+    '</div></td>' +
+    '<td style="padding:5px 6px"><span id="pr-code-' + id + '" style="font-size:11px;color:var(--text2);font-family:monospace">—</span></td>' +
+    '<td style="padding:5px 6px"><span id="pr-qty-' + id + '" style="font-size:11px;color:var(--text2)">—</span></td>' +
+    '<td style="padding:5px 6px"><select id="pr-role-' + id + '" style="font-size:11px;border:.5px solid var(--border2);border-radius:6px;padding:3px 5px;background:var(--bg);color:var(--text);width:100%">' +
+      '<option>主色</option><option>底色</option><option>陰影</option><option>亮面</option><option>罩染</option><option>金屬</option><option>保護漆</option><option>補土</option>' +
+    '</select></td>' +
+    '<td style="padding:5px 6px"><input type="text" placeholder="備注" style="width:100%;font-size:12px;border:.5px solid var(--border2);border-radius:6px;padding:4px 7px;background:var(--bg);color:var(--text)" id="pr-note-' + id + '"></td>' +
+    '<td style="padding:5px 6px;text-align:center"><button onclick="removePlanRow(' + id + ')" style="background:none;border:none;cursor:pointer;color:var(--text2);font-size:14px">✕</button></td>';
+  tbody.appendChild(tr);
+}
+
+function onPaintInput(id) {
+  const val = document.getElementById('pr-paint-' + id).value;
+  const p = paints.find(function(p) { return val.indexOf(p.name) !== -1 || val.indexOf(p.code) !== -1; });
+  if (p) {
+    document.getElementById('pr-code-' + id).textContent = p.code;
+    document.getElementById('pr-qty-' + id).textContent = p.qty + ' 罐';
+    document.getElementById('pr-qty-' + id).style.color = p.qty === 0 ? 'var(--dtx)' : p.qty <= 1 ? 'var(--wtx)' : 'var(--oktx)';
+    var sw = document.getElementById('pr-swatch-' + id);
+    if (isMetallic(p)) {
+      sw.style.background = 'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.7) 0%, ' + (p.color||'#ccc') + ' 40%, rgba(0,0,0,0.25) 100%)';
+    } else {
+      sw.style.background = p.color || '#ccc';
+    }
+  }
+}
+
+function removePlanRow(id) {
+  var row = document.getElementById('plan-row-' + id);
+  if (row) row.remove();
+  var tbody = document.getElementById('plan-tbody');
+  if (!tbody.children.length) {
+    var tr = document.createElement('tr');
+    tr.id = 'plan-empty-row';
+    tr.innerHTML = '<td colspan="7" style="padding:2rem;text-align:center;color:var(--text2);font-size:13px">點「新增部位」開始規劃</td>';
+    tbody.appendChild(tr);
+  }
+}
+
+function printPlan() {
+  var model = document.getElementById('plan-model').value || '模型名稱';
+  var method = document.getElementById('plan-method').value || '';
+  var today = new Date().toLocaleDateString('zh-TW');
+  var rows = [];
+  document.querySelectorAll('#plan-tbody tr[id^="plan-row-"]').forEach(function(tr) {
+    var id = tr.id.replace('plan-row-','');
+    var sw = document.getElementById('pr-swatch-' + id);
+    rows.push({
+      part:   document.getElementById('pr-part-' + id) ? document.getElementById('pr-part-' + id).value : '',
+      paint:  document.getElementById('pr-paint-' + id) ? document.getElementById('pr-paint-' + id).value.split('（')[0] : '',
+      code:   document.getElementById('pr-code-' + id) ? document.getElementById('pr-code-' + id).textContent : '',
+      qty:    document.getElementById('pr-qty-' + id) ? document.getElementById('pr-qty-' + id).textContent : '',
+      role:   document.getElementById('pr-role-' + id) ? document.getElementById('pr-role-' + id).value : '',
+      note:   document.getElementById('pr-note-' + id) ? document.getElementById('pr-note-' + id).value : '',
+      swatch: sw ? sw.style.background : '#ccc',
+    });
+  });
+  if (!rows.length) { toast('請先新增部位'); return; }
+  var roleStyle = {
+    '主色':'background:#e6f1fb;color:#0c447c','底色':'background:#fcebeb;color:#a32d2d',
+    '陰影':'background:#eeedfe;color:#3c3489','亮面':'background:#eaf3de;color:#3b6d11',
+    '罩染':'background:#faeeda;color:#854f0b','金屬':'background:#f0f0ee;color:#6b6b67',
+    '保護漆':'background:#f0f0ee;color:#6b6b67','補土':'background:#fcebeb;color:#a32d2d',
+  };
+  var rowsHtml = rows.map(function(r) {
+    var rs = roleStyle[r.role] || 'background:#f0f0ee;color:#6b6b67';
+    var qtyColor = r.qty === '0 罐' ? '#a32d2d' : (r.qty.indexOf('1') !== -1 ? '#854f0b' : '#3b6d11');
+    return '<tr>' +
+      '<td style="padding:7pt 8pt;border-bottom:.5pt solid #e8e8e6;font-size:9pt;font-weight:500">' + r.part + '</td>' +
+      '<td style="padding:7pt 8pt;border-bottom:.5pt solid #e8e8e6"><div style="display:flex;align-items:center;gap:6pt">' +
+        '<div style="width:12pt;height:12pt;border-radius:3pt;border:.5pt solid #ccc;flex-shrink:0;background:' + r.swatch + '"></div>' +
+        '<span style="font-size:9pt;font-weight:500">' + r.paint + '</span></div></td>' +
+      '<td style="padding:7pt 8pt;border-bottom:.5pt solid #e8e8e6;font-size:8pt;color:#6b6b67;font-family:monospace">' + r.code + '</td>' +
+      '<td style="padding:7pt 8pt;border-bottom:.5pt solid #e8e8e6;font-size:8pt;color:' + qtyColor + ';font-weight:500">' + r.qty + '</td>' +
+      '<td style="padding:7pt 8pt;border-bottom:.5pt solid #e8e8e6"><span style="font-size:7.5pt;font-weight:700;padding:2pt 6pt;border-radius:8pt;' + rs + '">' + r.role + '</span></td>' +
+      '<td style="padding:7pt 8pt;border-bottom:.5pt solid #e8e8e6;font-size:8pt;color:#6b6b67">' + r.note + '</td>' +
+    '</tr>';
+  }).join('');
+  var printHtml = '<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><title>' + model + ' — 上色企劃</title>' +
+    '<style>@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap");' +
+    '@page{size:A4;margin:14mm 16mm}*{box-sizing:border-box;margin:0;padding:0}' +
+    'body{font-family:"Noto Sans TC",sans-serif;color:#1a1a18;font-size:9pt;background:#fff}' +
+    'table{width:100%;border-collapse:collapse}' +
+    'th{background:#f5f5f3;padding:7pt 8pt;text-align:left;font-weight:500;font-size:8pt;color:#6b6b67;border-bottom:1pt solid #1a1a18}' +
+    '</style></head><body>' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:3pt">' +
+      '<h1 style="font-size:16pt;font-weight:700">' + model + '</h1>' +
+      '<div style="text-align:right;font-size:8pt;color:#6b6b67;line-height:1.8">上色企劃' + (method ? '<br>' + method : '') + '<br>' + today + '</div>' +
+    '</div>' +
+    '<hr style="border:none;border-top:2pt solid #1a1a18;margin-bottom:12pt">' +
+    '<table><thead><tr>' +
+      '<th style="width:13%">部位</th><th style="width:22%">漆料</th>' +
+      '<th style="width:11%">色號</th><th style="width:9%">庫存</th>' +
+      '<th style="width:9%">用途</th><th>備注</th>' +
+    '</tr></thead><tbody>' + rowsHtml + '</tbody></table>' +
+    '<div style="margin-top:14pt;font-size:7pt;color:#aaa;text-align:center;border-top:.5pt solid #e0e0de;padding-top:5pt">漆料庫存管理 transcendent-sprinkles-280c0b.netlify.app</div>' +
+    '</body></html>';
+  var win = window.open('', '_blank');
+  win.document.write(printHtml);
+  win.document.close();
+  setTimeout(function() { win.print(); }, 800);
+}
+
 </script>
 </body>
 </html>
