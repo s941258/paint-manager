@@ -1,6 +1,6 @@
-export const config = { runtime: 'nodejs' };
+import https from 'https';
 
-const https = require('https');
+export const config = { runtime: 'nodejs' };
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -18,13 +18,13 @@ export default async function handler(req, res) {
     const requestBody = JSON.stringify({
       model: 'claude-haiku-4-5',
       max_tokens: 800,
-      system: '你是鋼彈模型上色專家。只輸出合法 JSON，絕對不要有說明文字、markdown、換行符號。格式：{"steps":[{"step":1,"title":"補土打底","method":"噴塗","paints":[{"part":"全身","name":"灰補土","code":"P-03","role":"補土","note":""}]}]}。每個值必須是單行字串，不可包含雙引號或特殊字元。',
+      system: '你是鋼彈模型上色專家。只輸出合法 JSON，絕對不要有說明文字、markdown、換行符號。格式：{"steps":[{"step":1,"title":"補土打底","method":"噴塗","paints":[{"part":"全身","name":"灰補土","code":"P-03","role":"補土","note":""}]}]}。每個值必須是單行字串。',
       messages: [{ role: 'user', content: '模型：' + prompt + '\n庫存：\n' + inv }]
     });
 
     const result = await new Promise((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error('timeout')), 9000);
-      const req2 = https.request({
+      const reqApi = https.request({
         hostname: 'api.anthropic.com',
         path: '/v1/messages',
         method: 'POST',
@@ -40,12 +40,12 @@ export default async function handler(req, res) {
         r.on('end', () => {
           clearTimeout(timer);
           try { resolve(JSON.parse(data)); }
-          catch(e) { reject(new Error('API error')); }
+          catch(e) { reject(new Error('API parse error')); }
         });
       });
-      req2.on('error', e => { clearTimeout(timer); reject(e); });
-      req2.write(requestBody);
-      req2.end();
+      reqApi.on('error', e => { clearTimeout(timer); reject(e); });
+      reqApi.write(requestBody);
+      reqApi.end();
     });
 
     let text = result.content?.[0]?.text || '{}';
