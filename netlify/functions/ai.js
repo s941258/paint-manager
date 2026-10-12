@@ -8,14 +8,21 @@ exports.handler = async function(event) {
   try {
     const { prompt, inventory } = JSON.parse(event.body);
 
+    // 只傳有庫存的漆料，縮短 prompt
+    const inv = inventory.split('\n')
+      .filter(l => !l.includes('qty:0'))
+      .slice(0, 80)
+      .join('\n');
+
     const requestBody = JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 2000,
-      system: '你是模型漆料上色規劃專家，用戶使用九五二漆(9527)、Vallejo Mecha Color 和 MODO 水性漆，主要做鋼彈模型。根據用戶提供的庫存和模型名稱，幫他規劃完整的上色方案。請用繁體中文回答，以 JSON 格式輸出，格式如下：{"steps":[{"step":1,"title":"步驟名稱","method":"噴塗或筆塗","paints":[{"part":"部位","name":"漆料名稱","code":"色號","role":"用途","note":"備注"}]}]}。只使用庫存中有的漆料（qty > 0），若庫存不足請在 note 標註「建議補購」。',
-      messages: [{ role: 'user', content: '模型：' + prompt + '\n\n現有庫存：\n' + inventory }]
+      model: 'claude-haiku-5-5',
+      max_tokens: 1000,
+      system: '你是鋼彈模型上色專家。根據庫存幫用戶規劃上色方案，繁體中文，只用有庫存的漆料。輸出純 JSON，格式：{"steps":[{"step":1,"title":"步驟名","paints":[{"part":"部位","name":"漆料名","code":"色號","role":"主色/底色/陰影/亮面/金屬/保護漆","note":"備注"}]}]}',
+      messages: [{ role: 'user', content: '模型：' + prompt + '\n庫存：\n' + inv }]
     });
 
     const result = await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('API timeout')), 8000);
       const req = https.request({
         hostname: 'api.anthropic.com',
         path: '/v1/messages',
@@ -29,9 +36,13 @@ exports.handler = async function(event) {
       }, (res) => {
         let data = '';
         res.on('data', chunk => data += chunk);
-        res.on('end', () => resolve(JSON.parse(data)));
+        res.on('end', () => {
+          clearTimeout(timer);
+          try { resolve(JSON.parse(data)); }
+          catch(e) { reject(e); }
+        });
       });
-      req.on('error', reject);
+      req.on('error', (e) => { clearTimeout(timer); reject(e); });
       req.write(requestBody);
       req.end();
     });
@@ -42,10 +53,7 @@ exports.handler = async function(event) {
 
     return {
       statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      },
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
       body: JSON.stringify(parsed)
     };
   } catch(e) {
