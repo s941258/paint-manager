@@ -161,7 +161,7 @@ tr:hover td{background:var(--bg2)}
 
 
 <div class="panel" id="p-plan">
-  <div style="display:flex;gap:8px;margin-bottom:.9rem;flex-wrap:wrap;align-items:center">
+  <div style="display:flex;gap:8px;margin-bottom:.9rem;flex-wrap:wrap;align-items:flex-end">
     <div style="flex:1;min-width:200px">
       <div style="font-size:11px;color:var(--text2);margin-bottom:3px">模型名稱</div>
       <input type="text" id="plan-model" placeholder="例：MG Crossbone X1 Ver.Ka" style="width:100%;font-size:13px">
@@ -171,14 +171,16 @@ tr:hover td{background:var(--bg2)}
       <input type="text" id="plan-method" placeholder="例：平噴，不疊陰影" style="width:100%;font-size:13px">
     </div>
     <div>
-      <div style="font-size:11px;color:var(--text2);margin-bottom:3px">&nbsp;</div>
-      <button class="btn btn-p" onclick="addPlanRow()">+ 新增部位</button>
+      <button class="btn btn-p" onclick="aiPlan()" id="ai-plan-btn">✦ AI 自動規劃</button>
     </div>
     <div>
-      <div style="font-size:11px;color:var(--text2);margin-bottom:3px">&nbsp;</div>
+      <button class="btn" onclick="addPlanRow()">+ 手動新增</button>
+    </div>
+    <div>
       <button class="btn" onclick="printPlan()" style="background:#1a1a18;color:#fff;border-color:transparent">⎙ 匯出 PDF</button>
     </div>
   </div>
+  <div id="ai-plan-status" style="font-size:12px;color:var(--text2);margin-bottom:.5rem;min-height:16px"></div>
 
   <div class="card" id="plan-table-wrap">
     <table style="width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed">
@@ -670,6 +672,83 @@ function removePlanRow(id) {
     tr.innerHTML = '<td colspan="7" style="padding:2rem;text-align:center;color:var(--text2);font-size:13px">點「新增部位」開始規劃</td>';
     tbody.appendChild(tr);
   }
+}
+
+async function aiPlan() {
+  const model = document.getElementById('plan-model').value.trim();
+  if (!model) { toast('請先輸入模型名稱'); return; }
+  const btn = document.getElementById('ai-plan-btn');
+  const status = document.getElementById('ai-plan-status');
+  btn.disabled = true;
+  btn.textContent = '⟳ AI 規劃中...';
+  status.textContent = '正在讀取庫存並分析配色，請稍候...';
+
+  const inventory = paints.map(p =>
+    p.brand + ' ' + p.name + '(' + p.code + ') qty:' + p.qty
+  ).join('\n');
+
+  const method = document.getElementById('plan-method').value || '噴塗';
+
+  try {
+    const res = await fetch('/.netlify/functions/ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: model + '，施工方式：' + method, inventory })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    // Clear existing rows
+    const tbody = document.getElementById('plan-tbody');
+    tbody.innerHTML = '';
+
+    // Fill in rows from AI response
+    let rowCount = 0;
+    if (data.steps && data.steps.length) {
+      data.steps.forEach(function(step) {
+        if (step.paints && step.paints.length) {
+          step.paints.forEach(function(paint) {
+            const id = ++planRowId;
+            const p = paints.find(function(x) { return x.code === paint.code || x.name === paint.name; });
+            const color = p ? (isMetallic(p) ?
+              'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.7) 0%, ' + (p.color||'#ccc') + ' 40%, rgba(0,0,0,0.25) 100%)' :
+              (p.color||'#ccc')) : '#ccc';
+            const qty = p ? p.qty : '?';
+            const qtyColor = qty === 0 ? 'var(--dtx)' : qty <= 1 ? 'var(--wtx)' : 'var(--oktx)';
+
+            const tr = document.createElement('tr');
+            tr.id = 'plan-row-' + id;
+            tr.style.borderBottom = '.5px solid var(--border)';
+            tr.innerHTML =
+              '<td style="padding:5px 6px"><input type="text" value="' + (paint.part||'') + '" style="width:100%;font-size:12px;border:.5px solid var(--border2);border-radius:6px;padding:4px 7px;background:var(--bg);color:var(--text)" id="pr-part-' + id + '"></td>' +
+              '<td style="padding:5px 6px"><div style="display:flex;align-items:center;gap:4px">' +
+                '<div id="pr-swatch-' + id + '" style="width:14px;height:14px;border-radius:3px;border:.5px solid #ccc;flex-shrink:0;background:' + color + '"></div>' +
+                '<input type="text" list="paint-datalist" value="' + (paint.name||'') + '" style="flex:1;min-width:0;font-size:12px;border:.5px solid var(--border2);border-radius:6px;padding:4px 7px;background:var(--bg);color:var(--text)" id="pr-paint-' + id + '" oninput="onPaintInput(' + id + ')">' +
+              '</div></td>' +
+              '<td style="padding:5px 6px"><span id="pr-code-' + id + '" style="font-size:11px;color:var(--text2);font-family:monospace">' + (paint.code||'—') + '</span></td>' +
+              '<td style="padding:5px 6px"><span id="pr-qty-' + id + '" style="font-size:11px;color:' + qtyColor + ';font-weight:500">' + qty + ' 罐</span></td>' +
+              '<td style="padding:5px 6px"><select id="pr-role-' + id + '" style="font-size:11px;border:.5px solid var(--border2);border-radius:6px;padding:3px 5px;background:var(--bg);color:var(--text);width:100%">' +
+                ['主色','底色','陰影','亮面','罩染','金屬','保護漆','補土'].map(function(r) {
+                  return '<option' + (r === paint.role ? ' selected' : '') + '>' + r + '</option>';
+                }).join('') +
+              '</select></td>' +
+              '<td style="padding:5px 6px"><input type="text" value="' + (paint.note||'') + '" style="width:100%;font-size:12px;border:.5px solid var(--border2);border-radius:6px;padding:4px 7px;background:var(--bg);color:var(--text)" id="pr-note-' + id + '"></td>' +
+              '<td style="padding:5px 6px;text-align:center"><button onclick="removePlanRow(' + id + ')" style="background:none;border:none;cursor:pointer;color:var(--text2);font-size:14px">✕</button></td>';
+            tbody.appendChild(tr);
+            rowCount++;
+          });
+        }
+      });
+    }
+
+    status.textContent = 'AI 已自動規劃 ' + rowCount + ' 個部位，可手動調整後匯出 PDF。';
+    status.style.color = 'var(--oktx)';
+  } catch(e) {
+    status.textContent = '規劃失敗：' + e.message;
+    status.style.color = 'var(--dtx)';
+  }
+  btn.disabled = false;
+  btn.textContent = '✦ AI 自動規劃';
 }
 
 function printPlan() {
