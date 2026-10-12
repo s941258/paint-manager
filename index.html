@@ -123,6 +123,7 @@ tr:hover td{background:var(--bg2)}
 <div class="tabs">
   <button class="tab on" id="tab-inv" onclick="switchTab('inv')">☰庫存列表</button>
   <button class="tab" id="tab-ai" onclick="switchTab('ai')">✦AI 調色建議</button>
+  <button class="tab" id="tab-plan" onclick="switchTab('plan')">📋 上色企劃</button>
 </div>
 
 <div class="panel on" id="p-inv">
@@ -157,6 +158,52 @@ tr:hover td{background:var(--bg2)}
   </div>
 </div>
 </div>
+
+
+<div class="panel" id="p-plan">
+  <div style="display:flex;gap:8px;margin-bottom:.9rem;flex-wrap:wrap;align-items:center">
+    <div style="flex:1;min-width:200px">
+      <div style="font-size:11px;color:var(--text2);margin-bottom:3px">模型名稱</div>
+      <input type="text" id="plan-model" placeholder="例：MG Crossbone X1 Ver.Ka" style="width:100%;font-size:13px">
+    </div>
+    <div style="flex:1;min-width:150px">
+      <div style="font-size:11px;color:var(--text2);margin-bottom:3px">施工方式</div>
+      <input type="text" id="plan-method" placeholder="例：平噴，不疊陰影" style="width:100%;font-size:13px">
+    </div>
+    <div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:3px">&nbsp;</div>
+      <button class="btn btn-p" onclick="addPlanRow()">+ 新增部位</button>
+    </div>
+    <div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:3px">&nbsp;</div>
+      <button class="btn" onclick="printPlan()" style="background:#1a1a18;color:#fff;border-color:transparent">⎙ 匯出 PDF</button>
+    </div>
+  </div>
+
+  <div class="card" id="plan-table-wrap">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed">
+      <thead>
+        <tr style="background:var(--bg2)">
+          <th style="padding:8px 9px;text-align:left;font-weight:500;font-size:11px;color:var(--text2);border-bottom:.5px solid var(--border);width:14%">部位</th>
+          <th style="padding:8px 9px;text-align:left;font-weight:500;font-size:11px;color:var(--text2);border-bottom:.5px solid var(--border);width:20%">漆料</th>
+          <th style="padding:8px 9px;text-align:left;font-weight:500;font-size:11px;color:var(--text2);border-bottom:.5px solid var(--border);width:10%">色號</th>
+          <th style="padding:8px 9px;text-align:left;font-weight:500;font-size:11px;color:var(--text2);border-bottom:.5px solid var(--border);width:8%">庫存</th>
+          <th style="padding:8px 9px;text-align:left;font-weight:500;font-size:11px;color:var(--text2);border-bottom:.5px solid var(--border);width:10%">用途</th>
+          <th style="padding:8px 9px;text-align:left;font-weight:500;font-size:11px;color:var(--text2);border-bottom:.5px solid var(--border)">備注</th>
+          <th style="padding:8px 9px;width:40px;border-bottom:.5px solid var(--border)"></th>
+        </tr>
+      </thead>
+      <tbody id="plan-tbody">
+        <tr id="plan-empty-row">
+          <td colspan="7" style="padding:2rem;text-align:center;color:var(--text2);font-size:13px">點「新增部位」開始規劃</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 列印用的隱藏報表 -->
+<div id="print-report" style="display:none"></div>
 
 <div id="mc"></div>
 <div class="toast" id="toast"></div>
@@ -407,11 +454,12 @@ function render() {
 }
 
 function switchTab(name) {
-  ['inv','ai'].forEach(n => {
+  ['inv','ai','plan'].forEach(n => {
     document.getElementById('tab-'+n).classList.toggle('on', n===name);
     document.getElementById('p-'+n).classList.toggle('on', n===name);
   });
   if (name === 'ai') checkKey();
+  if (name === 'plan') buildPaintDatalist();
 }
 
 function nextId() { return paints.length ? Math.max(...paints.map(p=>p.id))+1 : 1; }
