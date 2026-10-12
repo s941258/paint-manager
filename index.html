@@ -699,9 +699,9 @@ async function fetchGuide(model, method, steps) {
 
 function renderGuide(steps, guide) {
   guide = guide || [];
-  const guide = document.getElementById('plan-guide');
+  const guideEl = document.getElementById('plan-guide');
   const content = document.getElementById('plan-guide-content');
-  if (!steps || !steps.length) { guide.style.display = 'none'; return; }
+  if (!steps || !steps.length) { guideEl.style.display = 'none'; return; }
 
   const roleStyle = {
     '主色':'background:#e6f1fb;color:#0c447c','底色':'background:#fcebeb;color:#a32d2d',
@@ -747,7 +747,7 @@ function renderGuide(steps, guide) {
     '</div>';
   }).join('');
 
-  guide.style.display = 'block';
+  guideEl.style.display = 'block';
 }
 
 async function aiPlan() {
