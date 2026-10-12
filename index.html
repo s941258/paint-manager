@@ -560,7 +560,7 @@ function unlock() {
   fetchSheets();
 }
 
-async async function doLogin() {
+async function doLogin() {
   const pwd = document.getElementById('pwd').value.trim();
   if (!pwd) return;
   const hash = await sha256(pwd);
