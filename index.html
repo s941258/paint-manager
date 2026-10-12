@@ -679,26 +679,7 @@ function removePlanRow(id) {
   }
 }
 
-async function fetchGuide(model, method, steps) {
-  const status = document.getElementById('ai-plan-status');
-  try {
-    const res = await fetch('/.netlify/functions/guide', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: model + '，' + method, steps: steps })
-    });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    renderGuide(steps, data.guide || []);
-    status.textContent = 'AI 規劃完成！可手動調整後匯出 PDF。';
-  } catch(e) {
-    status.textContent = 'AI 規劃完成，步驟說明生成失敗：' + e.message;
-    renderGuide(steps, []);
-  }
-}
-
-function renderGuide(steps, guide) {
-  guide = guide || [];
+function renderGuide(steps) {
   const guide = document.getElementById('plan-guide');
   const content = document.getElementById('plan-guide-content');
   if (!steps || !steps.length) { guide.style.display = 'none'; return; }
@@ -737,12 +718,7 @@ function renderGuide(steps, guide) {
         '<span style="font-size:13px;font-weight:500;flex:1">' + (step.title||'') + '</span>' +
         methodBadge +
       '</div>' +
-      (function() {
-        var g = guide.find(function(x) { return x.step === step.step; });
-        if (!g) return '';
-        return (g.tip ? '<div style="padding:7px 12px;font-size:12px;color:var(--text2);background:var(--bg);border-bottom:.5px solid var(--border);line-height:1.6">💡 ' + g.tip + '</div>' : '') +
-               (g.caution ? '<div style="padding:5px 12px;font-size:11px;color:var(--wtx);background:var(--wbg);border-bottom:.5px solid var(--border)">⚠️ ' + g.caution + '</div>' : '');
-      })() +
+      (step.tip ? '<div style="padding:7px 12px;font-size:12px;color:var(--text2);background:var(--bg);border-bottom:.5px solid var(--border);line-height:1.6">💡 ' + step.tip + '</div>' : '') +
       '<div style="padding:4px 12px">' + paintsHtml + '</div>' +
     '</div>';
   }).join('');
@@ -828,11 +804,11 @@ async function aiPlan() {
       });
     }
 
-    status.textContent = 'AI 已自動規劃 ' + rowCount + ' 個部位，正在生成施工說明...';
+    status.textContent = 'AI 已自動規劃 ' + rowCount + ' 個部位，可手動調整後匯出 PDF。';
     status.style.color = 'var(--oktx)';
 
-    // 第二次請求：生成步驟說明
-    fetchGuide(model, method, data.steps || []);
+    // 渲染步驟說明
+    renderGuide(data.steps || []);
   } catch(e) {
     status.textContent = '規劃失敗：' + e.message;
     status.style.color = 'var(--dtx)';
