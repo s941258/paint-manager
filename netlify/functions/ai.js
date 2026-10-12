@@ -15,9 +15,9 @@ exports.handler = async function(event) {
 
     const requestBody = JSON.stringify({
       model: 'claude-haiku-4-5',
-      max_tokens: 1500,
-      system: '你是鋼彈模型上色專家。根據庫存幫用戶規劃上色方案。重要：只輸出合法的 JSON，不要有任何說明文字、markdown 標記或程式碼區塊。格式：{"steps":[{"step":1,"title":"步驟名","paints":[{"part":"部位","name":"漆料名","code":"色號","role":"主色","note":""}]}]}。role 只能是：主色、底色、陰影、亮面、金屬、保護漆、補土。所有字串值不能含有換行或特殊字元。',
-      messages: [{ role: 'user', content: '模型：' + prompt + '\n庫存（只用這些）：\n' + inv + '\n\n請輸出 JSON：' }]
+      max_tokens: 2000,
+      system: '你是鋼彈模型上色專家。根據庫存幫用戶規劃上色方案。只輸出合法 JSON，不要有任何說明文字或 markdown。格式：{"steps":[{"step":1,"title":"步驟名稱","method":"噴塗","tip":"施工要點說明（1-2句）","paints":[{"part":"部位","name":"漆料名","code":"色號","role":"主色","note":""}]}]}。role 只能是：主色、底色、陰影、亮面、金屬、保護漆、補土。tip 是這個步驟的施工說明，例如薄噴幾層、注意事項等。所有字串不能有換行。',
+      messages: [{ role: 'user', content: '模型：' + prompt + '\n庫存：\n' + inv + '\n\n輸出 JSON：' }]
     });
 
     const result = await new Promise((resolve, reject) => {
@@ -38,7 +38,7 @@ exports.handler = async function(event) {
         res.on('end', () => {
           clearTimeout(timer);
           try { resolve(JSON.parse(data)); }
-          catch(e) { reject(new Error('API parse error: ' + data.slice(0, 200))); }
+          catch(e) { reject(new Error('API error: ' + data.slice(0, 200))); }
         });
       });
       req.on('error', (e) => { clearTimeout(timer); reject(e); });
@@ -47,30 +47,16 @@ exports.handler = async function(event) {
     });
 
     let text = result.content?.[0]?.text || '{}';
-
-    // 清理：移除 markdown code block
     text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-
-    // 找到最外層的 JSON 物件
     const start = text.indexOf('{');
     const end = text.lastIndexOf('}');
-    if (start === -1 || end === -1) throw new Error('No JSON found');
+    if (start === -1 || end === -1) throw new Error('No JSON');
     text = text.slice(start, end + 1);
-
-    // 清理控制字元
-    text = text.replace(/[\x00-\x1F\x7F]/g, ' ').replace(/\n/g, ' ');
+    text = text.replace(/[\x00-\x1F\x7F]/g, ' ');
 
     let parsed;
-    try {
-      parsed = JSON.parse(text);
-    } catch(e) {
-      // 回傳原始文字讓前端顯示
-      return {
-        statusCode: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify({ steps: [], rawText: text, error: e.message })
-      };
-    }
+    try { parsed = JSON.parse(text); }
+    catch(e) { parsed = { steps: [], error: e.message }; }
 
     return {
       statusCode: 200,
