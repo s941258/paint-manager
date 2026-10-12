@@ -15,7 +15,7 @@ exports.handler = async function(event) {
       .join('\n');
 
     const requestBody = JSON.stringify({
-      model: 'claude-haiku-5-5',
+      model: 'claude-haiku-4-5',
       max_tokens: 1000,
       system: '你是鋼彈模型上色專家。根據庫存幫用戶規劃上色方案，繁體中文，只用有庫存的漆料。輸出純 JSON，格式：{"steps":[{"step":1,"title":"步驟名","paints":[{"part":"部位","name":"漆料名","code":"色號","role":"主色/底色/陰影/亮面/金屬/保護漆","note":"備注"}]}]}',
       messages: [{ role: 'user', content: '模型：' + prompt + '\n庫存：\n' + inv }]
