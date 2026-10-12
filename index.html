@@ -682,7 +682,7 @@ function removePlanRow(id) {
 async function fetchGuide(model, method, steps) {
   const status = document.getElementById('ai-plan-status');
   try {
-    const res = await fetch('/.netlify/functions/guide', {
+    const res = await fetch('/api/guide', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ model: model + '，' + method, steps: steps })
@@ -766,7 +766,7 @@ async function aiPlan() {
   const method = document.getElementById('plan-method').value || '噴塗';
 
   try {
-    const res = await fetch('/.netlify/functions/ai', {
+    const res = await fetch('/api/ai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt: model + '，施工方式：' + method, inventory })
