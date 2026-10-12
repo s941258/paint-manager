@@ -6,21 +6,18 @@ exports.handler = async function(event) {
   }
 
   try {
-    const { model, steps } = JSON.parse(event.body);
+    const { prompt, inventory } = JSON.parse(event.body);
 
-    // 把漆料規劃摘要給 AI 生成說明
-    const stepsSummary = steps.map(function(s) {
-      const paints = (s.paints||[]).map(function(p) {
-        return p.part + '用' + p.name + '(' + p.code + ')';
-      }).join('、');
-      return s.step + '. ' + s.title + '：' + paints;
-    }).join('\n');
+    const inv = inventory.split('\n')
+      .filter(l => !l.includes('qty:0'))
+      .slice(0, 60)
+      .join('\n');
 
     const requestBody = JSON.stringify({
       model: 'claude-haiku-4-5',
       max_tokens: 1000,
-      system: '你是鋼彈模型上色專家。根據上色規劃，為每個步驟寫施工說明。只輸出合法 JSON，不要有任何說明文字或 markdown。格式：{"guide":[{"step":1,"title":"步驟名稱","tip":"施工要點（1-2句，繁體中文）","caution":"注意事項（1句，可空）"}]}。所有字串不能有換行或特殊字元。',
-      messages: [{ role: 'user', content: '模型：' + model + '\n\n上色規劃：\n' + stepsSummary + '\n\n請為每個步驟寫施工說明，輸出 JSON：' }]
+      system: '你是鋼彈模型上色專家。只輸出合法 JSON，不要有任何說明文字或 markdown。格式：{"steps":[{"step":1,"title":"步驟名稱","method":"噴塗","paints":[{"part":"部位","name":"漆料名","code":"色號","role":"主色","note":""}]}]}。role 只能是：主色、底色、陰影、亮面、金屬、保護漆、補土。所有字串不能有換行。',
+      messages: [{ role: 'user', content: '模型：' + prompt + '\n庫存：\n' + inv + '\n\n輸出 JSON：' }]
     });
 
     const result = await new Promise((resolve, reject) => {
@@ -59,7 +56,7 @@ exports.handler = async function(event) {
 
     let parsed;
     try { parsed = JSON.parse(text); }
-    catch(e) { parsed = { guide: [], error: e.message }; }
+    catch(e) { parsed = { steps: [], error: e.message }; }
 
     return {
       statusCode: 200,
