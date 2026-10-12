@@ -182,6 +182,11 @@ tr:hover td{background:var(--bg2)}
   </div>
   <div id="ai-plan-status" style="font-size:12px;color:var(--text2);margin-bottom:.5rem;min-height:16px"></div>
 
+  <div id="plan-guide" style="display:none;margin-top:.9rem">
+    <div style="font-size:11px;font-weight:500;color:var(--text2);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.05em">上色步驟說明</div>
+    <div id="plan-guide-content"></div>
+  </div>
+
   <div class="card" id="plan-table-wrap">
     <table style="width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed">
       <thead>
@@ -674,6 +679,53 @@ function removePlanRow(id) {
   }
 }
 
+function renderGuide(steps) {
+  const guide = document.getElementById('plan-guide');
+  const content = document.getElementById('plan-guide-content');
+  if (!steps || !steps.length) { guide.style.display = 'none'; return; }
+
+  const roleStyle = {
+    '主色':'background:#e6f1fb;color:#0c447c','底色':'background:#fcebeb;color:#a32d2d',
+    '陰影':'background:#eeedfe;color:#3c3489','亮面':'background:#eaf3de;color:#3b6d11',
+    '罩染':'background:#faeeda;color:#854f0b','金屬':'background:#f0f0ee;color:#6b6b67',
+    '保護漆':'background:#f0f0ee;color:#6b6b67','補土':'background:#fcebeb;color:#a32d2d',
+  };
+
+  content.innerHTML = steps.map(function(step) {
+    const paintsHtml = (step.paints || []).map(function(p) {
+      const paint = paints.find(function(x) { return x.code === p.code || x.name === p.name; });
+      const color = paint ? (isMetallic(paint) ?
+        'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.7) 0%, ' + (paint.color||'#ccc') + ' 40%, rgba(0,0,0,0.25) 100%)' :
+        (paint.color||'#ccc')) : '#ccc';
+      const rs = roleStyle[p.role] || 'background:#f0f0ee;color:#6b6b67';
+      return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:.5px solid var(--border)">' +
+        '<div style="width:14px;height:14px;border-radius:3px;border:.5px solid #ccc;flex-shrink:0;background:' + color + '"></div>' +
+        '<span style="font-size:12px;font-weight:500;flex:1">' + (p.part||'') + '</span>' +
+        '<span style="font-size:12px;color:var(--text2);flex:2">' + (p.name||'') + '</span>' +
+        '<span style="font-size:11px;color:var(--text2);font-family:monospace;flex:1">' + (p.code||'') + '</span>' +
+        '<span style="font-size:11px;padding:2px 6px;border-radius:8px;' + rs + '">' + (p.role||'') + '</span>' +
+        (p.note ? '<span style="font-size:11px;color:var(--wtx)">' + p.note + '</span>' : '') +
+      '</div>';
+    }).join('');
+
+    const methodBadge = (step.method||'噴塗').includes('噴') ?
+      '<span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;background:#e6f1fb;color:#0c447c">噴塗</span>' :
+      '<span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;background:#eaf3de;color:#3b6d11">筆塗</span>';
+
+    return '<div style="background:var(--bg);border:.5px solid var(--border);border-radius:var(--rl);margin-bottom:8px;overflow:hidden">' +
+      '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg2);border-bottom:.5px solid var(--border)">' +
+        '<div style="width:22px;height:22px;border-radius:50%;background:var(--text);color:var(--bg);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">' + step.step + '</div>' +
+        '<span style="font-size:13px;font-weight:500;flex:1">' + (step.title||'') + '</span>' +
+        methodBadge +
+      '</div>' +
+      (step.tip ? '<div style="padding:7px 12px;font-size:12px;color:var(--text2);background:var(--bg);border-bottom:.5px solid var(--border);line-height:1.6">💡 ' + step.tip + '</div>' : '') +
+      '<div style="padding:4px 12px">' + paintsHtml + '</div>' +
+    '</div>';
+  }).join('');
+
+  guide.style.display = 'block';
+}
+
 async function aiPlan() {
   const model = document.getElementById('plan-model').value.trim();
   if (!model) { toast('請先輸入模型名稱'); return; }
@@ -754,6 +806,9 @@ async function aiPlan() {
 
     status.textContent = 'AI 已自動規劃 ' + rowCount + ' 個部位，可手動調整後匯出 PDF。';
     status.style.color = 'var(--oktx)';
+
+    // 渲染步驟說明
+    renderGuide(data.steps || []);
   } catch(e) {
     status.textContent = '規劃失敗：' + e.message;
     status.style.color = 'var(--dtx)';
@@ -801,6 +856,25 @@ function printPlan() {
       '<td style="padding:7pt 8pt;border-bottom:.5pt solid #e8e8e6;font-size:8pt;color:#6b6b67">' + r.note + '</td>' +
     '</tr>';
   }).join('');
+  // Collect guide steps for PDF
+  var guideHtml = '';
+  var guideEl = document.getElementById('plan-guide');
+  if (guideEl && guideEl.style.display !== 'none') {
+    var steps2 = [];
+    document.querySelectorAll('#plan-guide-content > div').forEach(function(div, i) {
+      var title = div.querySelector('span[style*="font-weight:500"]');
+      var tip = div.querySelector('div[style*="line-height"]');
+      if (title) steps2.push({ title: title.textContent, tip: tip ? tip.textContent.replace('💡 ','') : '' });
+    });
+    if (steps2.length) {
+      guideHtml = '<div style="margin-top:16pt"><div style="font-size:10pt;font-weight:700;margin-bottom:8pt;padding-bottom:4pt;border-bottom:1pt solid #1a1a18">上色步驟說明</div>' +
+        steps2.map(function(s, i) {
+          return '<div style="margin-bottom:8pt"><span style="font-size:9pt;font-weight:700">' + (i+1) + '. ' + s.title + '</span>' +
+            (s.tip ? '<div style="font-size:8pt;color:#6b6b67;margin-top:2pt;padding-left:12pt">' + s.tip + '</div>' : '') + '</div>';
+        }).join('') + '</div>';
+    }
+  }
+
   var printHtml = '<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><title>' + model + ' — 上色企劃</title>' +
     '<style>@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap");' +
     '@page{size:A4;margin:14mm 16mm}*{box-sizing:border-box;margin:0;padding:0}' +
@@ -818,6 +892,7 @@ function printPlan() {
       '<th style="width:11%">色號</th><th style="width:9%">庫存</th>' +
       '<th style="width:9%">用途</th><th>備注</th>' +
     '</tr></thead><tbody>' + rowsHtml + '</tbody></table>' +
+    guideHtml +
     '<div style="margin-top:14pt;font-size:7pt;color:#aaa;text-align:center;border-top:.5pt solid #e0e0de;padding-top:5pt">漆料庫存管理 transcendent-sprinkles-280c0b.netlify.app</div>' +
     '</body></html>';
   var win = window.open('', '_blank');
