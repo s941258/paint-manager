@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>漆料庫存管理</title>
 
- 
+
 <style>
 :root{--bg:#fff;--bg2:#f5f5f3;--bg3:#eeede9;--text:#1a1a18;--text2:#6b6b67;--border:rgba(0,0,0,.1);--border2:rgba(0,0,0,.2);--r:8px;--rl:12px;--ibg:#e6f1fb;--itx:#0c447c;--okbg:#eaf3de;--oktx:#3b6d11;--wbg:#faeeda;--wtx:#854f0b;--dbg:#fcebeb;--dtx:#a32d2d}
 @media(prefers-color-scheme:dark){:root{--bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2c;--text:#f0ede8;--text2:#8a8a86;--border:rgba(255,255,255,.1);--border2:rgba(255,255,255,.2);--ibg:#042c53;--itx:#85b7eb;--okbg:#173404;--oktx:#97c459;--wbg:#412402;--wtx:#ef9f27;--dbg:#501313;--dtx:#f09595}}
@@ -171,7 +171,10 @@ tr:hover td{background:var(--bg2)}
       <input type="text" id="plan-method" placeholder="例：平噴，不疊陰影" style="width:100%;font-size:13px">
     </div>
     <div>
-      <button class="btn btn-p" onclick="aiPlan()" id="ai-plan-btn">✦ AI 自動規劃</button>
+      <button class="btn btn-p" onclick="aiPlan()" id="ai-plan-btn">① AI 規劃漆料</button>
+    </div>
+    <div>
+      <button class="btn" onclick="aiGuide()" id="ai-guide-btn" style="opacity:0.4;cursor:not-allowed" disabled>② 生成施工說明</button>
     </div>
     <div>
       <button class="btn" onclick="addPlanRow()">+ 手動新增</button>
@@ -679,6 +682,26 @@ function removePlanRow(id) {
   }
 }
 
+async function aiGuide() {
+  const steps = window._lastPlanSteps;
+  const model = window._lastPlanModel;
+  const method = window._lastPlanMethod;
+  if (!steps || !steps.length) { 
+    const status = document.getElementById('ai-plan-status');
+    status.textContent = '請先執行「① AI 規劃漆料」';
+    status.style.color = 'var(--dtx)';
+    return; 
+  }
+  const btn = document.getElementById('ai-guide-btn');
+  btn.disabled = true;
+  btn.style.opacity = '0.4';
+  btn.textContent = '⟳ 生成中...';
+  await fetchGuide(model, method, steps);
+  btn.textContent = '② 生成施工說明';
+  btn.disabled = false;
+  btn.style.opacity = '1';
+}
+
 async function fetchGuide(model, method, steps) {
   const status = document.getElementById('ai-plan-status');
   try {
@@ -828,17 +851,25 @@ async function aiPlan() {
       });
     }
 
-    status.textContent = 'AI 已自動規劃 ' + rowCount + ' 個部位，正在生成施工說明...';
+    status.textContent = 'AI 已規劃 ' + rowCount + ' 個部位，確認漆料後按「② 生成施工說明」。';
     status.style.color = 'var(--oktx)';
 
-    // 第二次請求：生成步驟說明
-    fetchGuide(model, method, data.steps || []);
+    // 啟用第二步按鈕
+    const guideBtn = document.getElementById('ai-guide-btn');
+    guideBtn.disabled = false;
+    guideBtn.style.opacity = '1';
+    guideBtn.style.cursor = 'pointer';
+
+    // 儲存當前規劃供第二步使用
+    window._lastPlanSteps = data.steps || [];
+    window._lastPlanModel = model;
+    window._lastPlanMethod = method;
   } catch(e) {
     status.textContent = '規劃失敗：' + e.message;
     status.style.color = 'var(--dtx)';
   }
   btn.disabled = false;
-  btn.textContent = '✦ AI 自動規劃';
+  btn.innerHTML = '① AI 規劃漆料';
 }
 
 function printPlan() {
